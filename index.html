@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>המילון האישי שלי בערבית</title>
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
   <main class="wrap">
@@ -25,11 +25,7 @@
       <nav class="chips" id="chips" aria-label="בחירת קטגוריות"></nav>
       <div class="filter-section">
         <strong>סוג מילה</strong>
-        <div class="chips part-chips" aria-label="בחירת סוגי מילים">
-          <button class="chip active" id="allPartsOfSpeech" type="button" aria-pressed="true">הכול</button>
-          <button class="chip" type="button" data-part-of-speech="verb" aria-pressed="false">פעלים</button>
-          <button class="chip" type="button" data-part-of-speech="noun" aria-pressed="false">שמות עצם</button>
-        </div>
+        <div class="chips part-chips" id="partChips" aria-label="בחירת סוגי מילים"></div>
       </div>
     </div>
     <div class="control-panel-inner">
@@ -41,6 +37,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

@@ -177,7 +177,7 @@ function render() {
       <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
       <div class="word-signals">${hasDetails ? `<span class="details-indicator" title="פתיחת דוגמה" aria-hidden="true">⌄</span>` : ''}</div>
     </div>
-    <div class="word-meta">${partLabels.map(label => `<span class="part-label"><span class="label-kind">סוג:</span> ${escapeHtml(label)}</span>`).join('')}${topicLabels.map(label => `<span class="topic-label"><span class="label-kind">נושא:</span> ${escapeHtml(label)}</span>`).join('')}</div>
+    <div class="word-meta">${partLabels.map(label => `<span class="part-label">${escapeHtml(label)}</span>`).join('')}${topicLabels.map(label => `<span class="topic-label">${escapeHtml(label)}</span>`).join('')}</div>
     <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
     ${expanded ? `<div class="word-details"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></div>` : ''}
   </article>`;

@@ -29,6 +29,36 @@ function renderCategories() {
   $('#filterToggle').classList.toggle('has-filter', count > 0);
 }
 
+function wordReference(word) {
+  return `[AL-KAMUS word_id=${word.id}] ${word.transcription} | ${word.meaning} | ${word.arabic}`;
+}
+
+async function copyWord(button, word) {
+  const text = wordReference(word);
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const input = document.createElement('textarea');
+    input.value = text;
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    input.remove();
+  }
+
+  const original = button.textContent;
+  button.textContent = '✓';
+  button.classList.add('copied');
+  button.setAttribute('aria-label', 'הועתק');
+  window.setTimeout(() => {
+    button.textContent = original;
+    button.classList.remove('copied');
+    button.setAttribute('aria-label', 'העתקת הפניה למילה');
+  }, 1200);
+}
+
 function render() {
   const q = $('#search').value.trim().toLowerCase();
   const shown = words.filter(word =>
@@ -41,8 +71,16 @@ function render() {
     <div class="trans">${escapeHtml(word.transcription)}</div>
     <div class="meaning">${escapeHtml(word.meaning)}</div>
     <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
+    <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
     ${word.example ? `<div class="example">${escapeHtml(word.example)}</div>` : ''}
   </article>`).join('') || '<p class="empty">לא נמצאו מילים.</p>';
+
+  document.querySelectorAll('.copy-word').forEach(button => {
+    button.onclick = () => {
+      const word = words.find(item => item.id === button.dataset.wordId);
+      if (word) copyWord(button, word);
+    };
+  });
 
   renderCategories();
 }

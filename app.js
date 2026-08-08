@@ -11,11 +11,8 @@ function categoriesFor(word) {
   return (Array.isArray(categories) ? categories : [categories]).filter(Boolean);
 }
 
-const PART_OF_SPEECH_LABELS = {
-  verb: 'פועל', noun: 'שם עצם', question: 'מילת שאלה',
-  preposition: 'מילת יחס', connector: 'מילת קישור',
-  adverb: 'תואר הפועל', possession: 'מילת שייכות', quantifier: 'כַּמָּת'
-};
+const PART_OF_SPEECH_LABELS = { verb: 'פועל', noun: 'שם עצם' };
+const PART_OF_SPEECH_BADGES = { verb: 'פ׳', noun: 'ש׳' };
 
 function partsOfSpeechFor(word) {
   const parts = word.partsOfSpeech ?? word.partOfSpeech ?? [];
@@ -87,14 +84,11 @@ function renderCategories() {
 }
 
 function renderPartsOfSpeech() {
-  const availableParts = [...new Set(words.flatMap(partsOfSpeechFor))];
-  $('#partChips').innerHTML = [
-    `<button class="chip ${selectedPartsOfSpeech.size === 0 ? 'active' : ''}" id="allPartsOfSpeech" type="button" aria-pressed="${selectedPartsOfSpeech.size === 0}">הכול</button>`,
-    ...availableParts.map(part => {
+  const availableParts = ['verb', 'noun'];
+  $('#partChips').innerHTML = availableParts.map(part => {
       const active = selectedPartsOfSpeech.has(part);
       return `<button class="chip ${active ? 'active' : ''}" type="button" data-part-of-speech="${escapeHtml(part)}" aria-pressed="${active}">${escapeHtml(PART_OF_SPEECH_LABELS[part] ?? part)}</button>`;
-    })
-  ].join('');
+    }).join('');
 
   document.querySelectorAll('#partChips [data-part-of-speech]').forEach(button => {
     const part = button.dataset.partOfSpeech;
@@ -104,12 +98,6 @@ function renderPartsOfSpeech() {
       render();
     };
   });
-
-  $('#allPartsOfSpeech').onclick = () => {
-    selectedPartsOfSpeech.clear();
-    saveUiState();
-    render();
-  };
 }
 
 function wordReference(word) {
@@ -169,7 +157,7 @@ function render() {
   $('#grid').innerHTML = shown.map(word => {
     const hasDetails = Boolean(word.example);
     const expanded = hasDetails && expandedWordId === word.id;
-    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part] ?? part);
+  const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_BADGES[part] ?? part);
     return `<article class="card ${expanded ? 'expanded' : ''}" data-word-id="${escapeHtml(word.id)}">
     <div class="word-row ${hasDetails ? 'has-details' : ''}" ${hasDetails ? `role="button" tabindex="0" aria-expanded="${expanded}"` : ''}>
       <div class="trans">${escapeHtml(word.transcription)}</div>

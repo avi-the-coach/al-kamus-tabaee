@@ -1,34 +1,258 @@
 [
-  {"category":"מילות שאלה","arabic":"وين","transcription":"וֵין","meaning":"איפה","example":"וֵין אִנְתַ? — איפה אתה?"},
-  {"category":"מילות שאלה","arabic":"مين","transcription":"מִין","meaning":"מי","example":"מִין הַאדַא? — מי זה?"},
-  {"category":"מילות שאלה","arabic":"شو","transcription":"שוּ","meaning":"מה","example":"שוּ בִּדַּכּ? — מה אתה רוצה?"},
-  {"category":"מילות שאלה","arabic":"إيش","transcription":"אֵיש","meaning":"מה","example":"צורה נוספת של ‘מה’"},
-  {"category":"מילות שאלה","arabic":"ليش","transcription":"לֵיש","meaning":"למה","example":"לֵיש לַא? — למה לא?"},
-  {"category":"מילות שאלה","arabic":"كيف","transcription":"כִּיף","meaning":"איך","example":"כִּיף חַאלַכּ? — מה שלומך?"},
-  {"category":"מילות שאלה","arabic":"كم / أكم","transcription":"כַּם / אַכַּם","meaning":"כמה","example":""},
-  {"category":"מילות שאלה","arabic":"قدّيش","transcription":"קַדֵּיש","meaning":"כמה","example":"קַדֵּיש הַאדַא? — כמה זה?"},
-  {"category":"מילות שאלה","arabic":"أيّ","transcription":"אַיّ","meaning":"איזה / איזו","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"عشان","transcription":"עַשַאן","meaning":"בגלל / כדי","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"منشان","transcription":"מִנְשַאן","meaning":"בשביל / למען","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"حتى","transcription":"חַתַּא","meaning":"עד / כדי ש־ / אפילו","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"لحتى","transcription":"לַחַתַּא","meaning":"כדי ש־ / עד ש־","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"عشان هيك","transcription":"עַשַאן הֵיכּ","meaning":"בגלל זה / לכן","example":""},
-  {"category":"סיבה, מטרה ותוצאה","arabic":"لهيك","transcription":"לְהֵיכּ","meaning":"לכן / בגלל זה","example":""},
-  {"category":"שייכות וקישור","arabic":"بدّي","transcription":"בִּדִּי","meaning":"אני רוצה","example":""},
-  {"category":"שייכות וקישור","arabic":"تبع","transcription":"תַבַּע","meaning":"של / שייך ל־","example":""},
-  {"category":"שייכות וקישור","arabic":"عند","transcription":"עִנְד","meaning":"אצל / יש ל־","example":""},
-  {"category":"שייכות וקישור","arabic":"من","transcription":"מִן","meaning":"מ־","example":""},
-  {"category":"שייכות וקישור","arabic":"على","transcription":"עַלַא","meaning":"על","example":""},
-  {"category":"שייכות וקישור","arabic":"إنّه","transcription":"אִנּוֹ","meaning":"ש־ / שהוא","example":""},
-  {"category":"שייכות וקישור","arabic":"إلّي","transcription":"אִלִּי","meaning":"ש־ / אשר","example":""},
-  {"category":"שייכות וקישור","arabic":"لمّا","transcription":"לַמַּא","meaning":"כאשר / כש־","example":""},
-  {"category":"זמן ותדירות","arabic":"لسّا","transcription":"לִסַּא","meaning":"עדיין","example":""},
-  {"category":"זמן ותדירות","arabic":"عادة","transcription":"עַאדֶה","meaning":"בדרך כלל","example":""},
-  {"category":"זמן ותדירות","arabic":"دايمًا","transcription":"דַאיְמַן","meaning":"תמיד","example":""},
-  {"category":"זמן ותדירות","arabic":"وقت","transcription":"וַקְת","meaning":"זמן","example":""},
-  {"category":"זמן ותדירות","arabic":"زمان","transcription":"זַמַאן","meaning":"מזמן / פעם","example":""},
-  {"category":"זמן ותדירות","arabic":"شويّة","transcription":"שְוַיֶּה","meaning":"קצת / זמן קצר","example":""},
-  {"category":"זמן ותדירות","arabic":"إمتى","transcription":"אֵימְתַא","meaning":"מתי","example":""},
-  {"category":"דוגמה והשוואה","arabic":"مثلاً","transcription":"מַתַלַן","meaning":"למשל","example":""},
-  {"category":"דוגמה והשוואה","arabic":"مثل","transcription":"מִתְל","meaning":"כמו","example":""}
+  {
+    "id": "w-001",
+    "category": "מילות שאלה",
+    "arabic": "وين",
+    "transcription": "וֵין",
+    "meaning": "איפה",
+    "example": "וֵין אִנְתַ? — איפה אתה?"
+  },
+  {
+    "id": "w-002",
+    "category": "מילות שאלה",
+    "arabic": "مين",
+    "transcription": "מִין",
+    "meaning": "מי",
+    "example": "מִין הַאדַא? — מי זה?"
+  },
+  {
+    "id": "w-003",
+    "category": "מילות שאלה",
+    "arabic": "شو",
+    "transcription": "שוּ",
+    "meaning": "מה",
+    "example": "שוּ בִּדַּכּ? — מה אתה רוצה?"
+  },
+  {
+    "id": "w-004",
+    "category": "מילות שאלה",
+    "arabic": "إيش",
+    "transcription": "אֵיש",
+    "meaning": "מה",
+    "example": "צורה נוספת של ‘מה’"
+  },
+  {
+    "id": "w-005",
+    "category": "מילות שאלה",
+    "arabic": "ليش",
+    "transcription": "לֵיש",
+    "meaning": "למה",
+    "example": "לֵיש לַא? — למה לא?"
+  },
+  {
+    "id": "w-006",
+    "category": "מילות שאלה",
+    "arabic": "كيف",
+    "transcription": "כִּיף",
+    "meaning": "איך",
+    "example": "כִּיף חַאלַכּ? — מה שלומך?"
+  },
+  {
+    "id": "w-007",
+    "category": "מילות שאלה",
+    "arabic": "كم / أكم",
+    "transcription": "כַּם / אַכַּם",
+    "meaning": "כמה",
+    "example": ""
+  },
+  {
+    "id": "w-008",
+    "category": "מילות שאלה",
+    "arabic": "قدّيش",
+    "transcription": "קַדֵּיש",
+    "meaning": "כמה",
+    "example": "קַדֵּיש הַאדַא? — כמה זה?"
+  },
+  {
+    "id": "w-009",
+    "category": "מילות שאלה",
+    "arabic": "أيّ",
+    "transcription": "אַיّ",
+    "meaning": "איזה / איזו",
+    "example": ""
+  },
+  {
+    "id": "w-010",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "عشان",
+    "transcription": "עַשַאן",
+    "meaning": "בגלל / כדי",
+    "example": ""
+  },
+  {
+    "id": "w-011",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "منشان",
+    "transcription": "מִנְשַאן",
+    "meaning": "בשביל / למען",
+    "example": ""
+  },
+  {
+    "id": "w-012",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "حتى",
+    "transcription": "חַתַּא",
+    "meaning": "עד / כדי ש־ / אפילו",
+    "example": ""
+  },
+  {
+    "id": "w-013",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "لحتى",
+    "transcription": "לַחַתַּא",
+    "meaning": "כדי ש־ / עד ש־",
+    "example": ""
+  },
+  {
+    "id": "w-014",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "عشان هيك",
+    "transcription": "עַשַאן הֵיכּ",
+    "meaning": "בגלל זה / לכן",
+    "example": ""
+  },
+  {
+    "id": "w-015",
+    "category": "סיבה, מטרה ותוצאה",
+    "arabic": "لهيك",
+    "transcription": "לְהֵיכּ",
+    "meaning": "לכן / בגלל זה",
+    "example": ""
+  },
+  {
+    "id": "w-016",
+    "category": "שייכות וקישור",
+    "arabic": "بدّي",
+    "transcription": "בִּדִּי",
+    "meaning": "אני רוצה",
+    "example": ""
+  },
+  {
+    "id": "w-017",
+    "category": "שייכות וקישור",
+    "arabic": "تبع",
+    "transcription": "תַבַּע",
+    "meaning": "של / שייך ל־",
+    "example": ""
+  },
+  {
+    "id": "w-018",
+    "category": "שייכות וקישור",
+    "arabic": "عند",
+    "transcription": "עִנְד",
+    "meaning": "אצל / יש ל־",
+    "example": ""
+  },
+  {
+    "id": "w-019",
+    "category": "שייכות וקישור",
+    "arabic": "من",
+    "transcription": "מִן",
+    "meaning": "מ־",
+    "example": ""
+  },
+  {
+    "id": "w-020",
+    "category": "שייכות וקישור",
+    "arabic": "على",
+    "transcription": "עַלַא",
+    "meaning": "על",
+    "example": ""
+  },
+  {
+    "id": "w-021",
+    "category": "שייכות וקישור",
+    "arabic": "إنّه",
+    "transcription": "אִנּוֹ",
+    "meaning": "ש־ / שהוא",
+    "example": ""
+  },
+  {
+    "id": "w-022",
+    "category": "שייכות וקישור",
+    "arabic": "إلّي",
+    "transcription": "אִלִּי",
+    "meaning": "ש־ / אשר",
+    "example": ""
+  },
+  {
+    "id": "w-023",
+    "category": "שייכות וקישור",
+    "arabic": "لمّا",
+    "transcription": "לַמַּא",
+    "meaning": "כאשר / כש־",
+    "example": ""
+  },
+  {
+    "id": "w-024",
+    "category": "זמן ותדירות",
+    "arabic": "لسّا",
+    "transcription": "לִסַּא",
+    "meaning": "עדיין",
+    "example": ""
+  },
+  {
+    "id": "w-025",
+    "category": "זמן ותדירות",
+    "arabic": "عادة",
+    "transcription": "עַאדֶה",
+    "meaning": "בדרך כלל",
+    "example": ""
+  },
+  {
+    "id": "w-026",
+    "category": "זמן ותדירות",
+    "arabic": "دايمًا",
+    "transcription": "דַאיְמַן",
+    "meaning": "תמיד",
+    "example": ""
+  },
+  {
+    "id": "w-027",
+    "category": "זמן ותדירות",
+    "arabic": "وقت",
+    "transcription": "וַקְת",
+    "meaning": "זמן",
+    "example": ""
+  },
+  {
+    "id": "w-028",
+    "category": "זמן ותדירות",
+    "arabic": "زمان",
+    "transcription": "זַמַאן",
+    "meaning": "מזמן / פעם",
+    "example": ""
+  },
+  {
+    "id": "w-029",
+    "category": "זמן ותדירות",
+    "arabic": "شويّة",
+    "transcription": "שְוַיֶּה",
+    "meaning": "קצת / זמן קצר",
+    "example": ""
+  },
+  {
+    "id": "w-030",
+    "category": "זמן ותדירות",
+    "arabic": "إمتى",
+    "transcription": "אֵימְתַא",
+    "meaning": "מתי",
+    "example": ""
+  },
+  {
+    "id": "w-031",
+    "category": "דוגמה והשוואה",
+    "arabic": "مثلاً",
+    "transcription": "מַתַלַן",
+    "meaning": "למשל",
+    "example": ""
+  },
+  {
+    "id": "w-032",
+    "category": "דוגמה והשוואה",
+    "arabic": "مثل",
+    "transcription": "מִתְל",
+    "meaning": "כמו",
+    "example": ""
+  }
 ]

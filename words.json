@@ -1,7 +1,8 @@
 [
   {
     "id": "w-001",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "وين",
     "transcription": "וֵין",
     "meaning": "איפה",
@@ -9,7 +10,8 @@
   },
   {
     "id": "w-002",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "مين",
     "transcription": "מִין",
     "meaning": "מי",
@@ -17,7 +19,8 @@
   },
   {
     "id": "w-003",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "شو",
     "transcription": "שוּ",
     "meaning": "מה",
@@ -25,7 +28,8 @@
   },
   {
     "id": "w-004",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "إيش",
     "transcription": "אֵיש",
     "meaning": "מה",
@@ -33,7 +37,8 @@
   },
   {
     "id": "w-005",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "ليش",
     "transcription": "לֵיש",
     "meaning": "למה",
@@ -41,7 +46,8 @@
   },
   {
     "id": "w-006",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "كيف",
     "transcription": "כִּיף",
     "meaning": "איך",
@@ -49,7 +55,8 @@
   },
   {
     "id": "w-007",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "كم / أكم",
     "transcription": "כַּם / אַכַּם",
     "meaning": "כמה",
@@ -57,7 +64,8 @@
   },
   {
     "id": "w-008",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "قدّيش",
     "transcription": "קַדֵּיש",
     "meaning": "כמה",
@@ -65,7 +73,8 @@
   },
   {
     "id": "w-009",
-    "category": "מילות שאלה",
+    "topics": [],
+    "partOfSpeech": "question_word",
     "arabic": "أيّ",
     "transcription": "אַי",
     "meaning": "איזה / איזו",
@@ -73,7 +82,8 @@
   },
   {
     "id": "w-010",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partsOfSpeech": ["preposition", "conjunction"],
     "arabic": "عشان",
     "transcription": "עַשַאן",
     "meaning": "בגלל / כדי",
@@ -81,7 +91,8 @@
   },
   {
     "id": "w-011",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partOfSpeech": "preposition",
     "arabic": "منشان",
     "transcription": "מִנְשַאן",
     "meaning": "בשביל / למען",
@@ -89,7 +100,8 @@
   },
   {
     "id": "w-012",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partsOfSpeech": ["preposition", "conjunction"],
     "arabic": "حتى",
     "transcription": "חַתַּא",
     "meaning": "עד / כדי ש־ / אפילו",
@@ -97,7 +109,8 @@
   },
   {
     "id": "w-013",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partOfSpeech": "conjunction",
     "arabic": "لحتى",
     "transcription": "לַחַתַּא",
     "meaning": "כדי ש־ / עד ש־",
@@ -105,7 +118,8 @@
   },
   {
     "id": "w-014",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partOfSpeech": "conjunction",
     "arabic": "عشان هيك",
     "transcription": "עַשַאן הֵיכּ",
     "meaning": "בגלל זה / לכן",
@@ -113,7 +127,8 @@
   },
   {
     "id": "w-015",
-    "category": "סיבה, מטרה ותוצאה",
+    "topic": "סיבה, מטרה ותוצאה",
+    "partOfSpeech": "conjunction",
     "arabic": "لهيك",
     "transcription": "לְהֵיכּ",
     "meaning": "לכן / בגלל זה",
@@ -121,7 +136,7 @@
   },
   {
     "id": "w-016",
-    "category": "שייכות וקישור",
+    "topics": [],
     "partOfSpeech": "verb",
     "arabic": "بدّي",
     "transcription": "בִּדִּי",
@@ -130,7 +145,8 @@
   },
   {
     "id": "w-017",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "possessive_word",
     "arabic": "تبع",
     "transcription": "תַבַּע",
     "meaning": "של / שייך ל־",
@@ -138,7 +154,8 @@
   },
   {
     "id": "w-018",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "preposition",
     "arabic": "عند",
     "transcription": "עִנְד",
     "meaning": "אצל / יש ל־",
@@ -146,7 +163,8 @@
   },
   {
     "id": "w-019",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "preposition",
     "arabic": "من",
     "transcription": "מִן",
     "meaning": "מ־",
@@ -154,7 +172,8 @@
   },
   {
     "id": "w-020",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "preposition",
     "arabic": "على",
     "transcription": "עַלַא",
     "meaning": "על",
@@ -162,7 +181,8 @@
   },
   {
     "id": "w-021",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "conjunction",
     "arabic": "إنّه",
     "transcription": "אִנּוֹ",
     "meaning": "ש־ / שהוא",
@@ -170,7 +190,8 @@
   },
   {
     "id": "w-022",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "relative_pronoun",
     "arabic": "إلّي",
     "transcription": "אִלִּי",
     "meaning": "ש־ / אשר",
@@ -178,7 +199,8 @@
   },
   {
     "id": "w-023",
-    "category": "שייכות וקישור",
+    "topics": [],
+    "partOfSpeech": "conjunction",
     "arabic": "لمّا",
     "transcription": "לַמַּא",
     "meaning": "כאשר / כש־",
@@ -186,7 +208,8 @@
   },
   {
     "id": "w-024",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "adverb",
     "arabic": "لسّا",
     "transcription": "לִסַּא",
     "meaning": "עדיין",
@@ -194,7 +217,8 @@
   },
   {
     "id": "w-025",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "adverb",
     "arabic": "عادةً",
     "transcription": "עַאדַתַן",
     "meaning": "בדרך כלל",
@@ -202,7 +226,8 @@
   },
   {
     "id": "w-026",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "adverb",
     "arabic": "دايمًا",
     "transcription": "דַאיְמַן",
     "meaning": "תמיד",
@@ -210,7 +235,7 @@
   },
   {
     "id": "w-027",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
     "partOfSpeech": "noun",
     "arabic": "وقت",
     "transcription": "וַקְת",
@@ -219,8 +244,8 @@
   },
   {
     "id": "w-028",
-    "category": "זמן ותדירות",
-    "partOfSpeech": "noun",
+    "topic": "זמן ותדירות",
+    "partsOfSpeech": ["noun", "adverb"],
     "arabic": "زمان",
     "transcription": "זַמַאן",
     "meaning": "מזמן / פעם",
@@ -228,7 +253,8 @@
   },
   {
     "id": "w-029",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "quantifier",
     "arabic": "شويّة",
     "transcription": "שְוַיֶּה",
     "meaning": "קצת / זמן קצר",
@@ -236,7 +262,8 @@
   },
   {
     "id": "w-030",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "question_word",
     "arabic": "إمتى",
     "transcription": "אֵימְתַא",
     "meaning": "מתי",
@@ -244,7 +271,8 @@
   },
   {
     "id": "w-031",
-    "category": "דוגמה והשוואה",
+    "topic": "דוגמה והשוואה",
+    "partOfSpeech": "adverb",
     "arabic": "مثلاً",
     "transcription": "מַתַלַן",
     "meaning": "למשל",
@@ -252,7 +280,8 @@
   },
   {
     "id": "w-032",
-    "category": "דוגמה והשוואה",
+    "topic": "דוגמה והשוואה",
+    "partOfSpeech": "preposition",
     "arabic": "مثل",
     "transcription": "מִתְל",
     "meaning": "כמו",
@@ -260,7 +289,8 @@
   },
   {
     "id": "w-033",
-    "category": "זמן ותדירות",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "adverb",
     "arabic": "إسّا",
     "transcription": "אִסַּא",
     "meaning": "עכשיו",
@@ -268,10 +298,7 @@
   },
   {
     "id": "w-034",
-    "category": [
-      "פעלים וציווי",
-      "ביטויים שימושיים"
-    ],
+    "topics": [],
     "partOfSpeech": "verb",
     "arabic": "خلّيها",
     "transcription": "חַלִּיהַא",

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>המילון האישי שלי בערבית</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
   <main class="wrap">
@@ -17,19 +17,19 @@
   </main>
 
   <aside class="control-panel" aria-label="חיפוש וסינון מילים">
-    <div class="category-panel" id="categoryPanel" hidden>
+    <div class="category-panel" id="filterPanel" hidden>
       <div class="category-panel-head">
-        <strong>קטגוריות</strong>
-        <button class="clear" id="clearCategories" type="button">נקה הכול</button>
+        <strong>נושאים</strong>
+        <button class="clear" id="clearFilters" type="button">נקה הכול</button>
       </div>
-      <nav class="chips" id="chips" aria-label="בחירת קטגוריות"></nav>
+      <nav class="chips" id="topicChips" aria-label="בחירת נושאים"></nav>
       <div class="filter-section">
         <strong>סוג מילה</strong>
         <div class="chips part-chips" id="partChips" aria-label="בחירת סוגי מילים"></div>
       </div>
     </div>
     <div class="control-panel-inner">
-      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="categoryPanel" aria-label="פתיחת קטגוריות" title="קטגוריות">
+      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel" aria-label="פתיחת מסננים" title="מסננים">
         <span aria-hidden="true">☷</span>
         <span class="filter-count" id="filterCount" hidden></span>
       </button>
@@ -37,6 +37,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

@@ -1,18 +1,27 @@
 let words = [];
 const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
-const UI_STATE_VERSION = 1;
-const selectedCategories = new Set();
+const UI_STATE_VERSION = 2;
+const selectedTopics = new Set();
 const selectedPartsOfSpeech = new Set();
 let expandedWordId = null;
 const $ = selector => document.querySelector(selector);
 
-function categoriesFor(word) {
-  const categories = word.categories ?? word.category ?? [];
-  return (Array.isArray(categories) ? categories : [categories]).filter(Boolean);
+function topicsFor(word) {
+  const topics = word.topics ?? word.topic ?? word.categories ?? word.category ?? [];
+  return (Array.isArray(topics) ? topics : [topics]).filter(Boolean);
 }
 
-const PART_OF_SPEECH_LABELS = { verb: 'פועל', noun: 'שם עצם' };
-const PART_OF_SPEECH_BADGES = { verb: 'פ׳', noun: 'ש׳' };
+const PART_OF_SPEECH_LABELS = {
+  verb: 'פועל',
+  noun: 'שם עצם',
+  question_word: 'מילת שאלה',
+  preposition: 'מילת יחס',
+  conjunction: 'מילת קישור',
+  adverb: 'תואר הפועל',
+  possessive_word: 'מילת שייכות',
+  relative_pronoun: 'כינוי זיקה',
+  quantifier: 'מילת כמות'
+};
 const SUPPORTED_PARTS_OF_SPEECH = new Set(Object.keys(PART_OF_SPEECH_LABELS));
 
 function partsOfSpeechFor(word) {
@@ -25,10 +34,10 @@ function loadUiState() {
     const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
     if (!savedState || savedState.version !== UI_STATE_VERSION) return;
 
-    if (Array.isArray(savedState.selectedCategories)) {
-      savedState.selectedCategories
-        .filter(category => typeof category === 'string')
-        .forEach(category => selectedCategories.add(category));
+    if (Array.isArray(savedState.selectedTopics)) {
+      savedState.selectedTopics
+        .filter(topic => typeof topic === 'string')
+        .forEach(topic => selectedTopics.add(topic));
     }
     if (Array.isArray(savedState.selectedPartsOfSpeech)) {
       savedState.selectedPartsOfSpeech
@@ -44,7 +53,7 @@ function saveUiState() {
   try {
     localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({
       version: UI_STATE_VERSION,
-      selectedCategories: [...selectedCategories],
+      selectedTopics: [...selectedTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech]
     }));
   } catch {
@@ -60,32 +69,33 @@ function escapeHtml(value = '') {
   })[character]);
 }
 
-function renderCategories() {
-  const categories = [...new Set(words.flatMap(categoriesFor))];
-  $('#chips').innerHTML = categories.map(category => {
-    const active = selectedCategories.has(category);
-    return `<button class="chip ${active ? 'active' : ''}" type="button" data-category="${escapeHtml(category)}" aria-pressed="${active}">${escapeHtml(category)}</button>`;
+function renderTopics() {
+  const topics = [...new Set(words.flatMap(topicsFor))];
+  $('#topicChips').innerHTML = topics.map(topic => {
+    const active = selectedTopics.has(topic);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-topic="${escapeHtml(topic)}" aria-pressed="${active}">${escapeHtml(topic)}</button>`;
   }).join('');
 
-  // Category chips are rebuilt on every render. Limit this handler to the
-  // category container so it does not overwrite the part-of-speech handlers.
-  document.querySelectorAll('#chips .chip').forEach(button => {
+  // Topic chips are rebuilt on every render. Limit this handler to the topic
+  // container so it does not overwrite the part-of-speech handlers.
+  document.querySelectorAll('#topicChips .chip').forEach(button => {
     button.onclick = () => {
-      const category = button.dataset.category;
-      selectedCategories.has(category) ? selectedCategories.delete(category) : selectedCategories.add(category);
+      const topic = button.dataset.topic;
+      selectedTopics.has(topic) ? selectedTopics.delete(topic) : selectedTopics.add(topic);
       saveUiState();
       render();
     };
   });
 
-  const count = selectedCategories.size + selectedPartsOfSpeech.size;
+  const count = selectedTopics.size + selectedPartsOfSpeech.size;
   $('#filterCount').textContent = count;
   $('#filterCount').hidden = count === 0;
   $('#filterToggle').classList.toggle('has-filter', count > 0);
 }
 
 function renderPartsOfSpeech() {
-  const availableParts = ['verb', 'noun'];
+  const availableParts = Object.keys(PART_OF_SPEECH_LABELS)
+    .filter(part => words.some(word => partsOfSpeechFor(word).includes(part)));
   $('#partChips').innerHTML = availableParts.map(part => {
       const active = selectedPartsOfSpeech.has(part);
       return `<button class="chip ${active ? 'active' : ''}" type="button" data-part-of-speech="${escapeHtml(part)}" aria-pressed="${active}">${escapeHtml(PART_OF_SPEECH_LABELS[part] ?? part)}</button>`;
@@ -147,7 +157,7 @@ async function copyWord(button, word) {
 function render() {
   const q = $('#search').value.trim().toLowerCase();
   const shown = words.filter(word =>
-    (selectedCategories.size === 0 || categoriesFor(word).some(category => selectedCategories.has(category))) &&
+    (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
     (selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   );
@@ -158,14 +168,16 @@ function render() {
   $('#grid').innerHTML = shown.map(word => {
     const hasDetails = Boolean(word.example);
     const expanded = hasDetails && expandedWordId === word.id;
-    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_BADGES[part]);
+    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part]);
+    const topicLabels = topicsFor(word);
     return `<article class="card ${expanded ? 'expanded' : ''}" data-word-id="${escapeHtml(word.id)}">
     <div class="word-row ${hasDetails ? 'has-details' : ''}" ${hasDetails ? `role="button" tabindex="0" aria-expanded="${expanded}"` : ''}>
       <div class="trans">${escapeHtml(word.transcription)}</div>
       <div class="meaning">${escapeHtml(word.meaning)}</div>
       <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
-      <div class="word-signals">${partLabels.map(label => `<span class="part-label">${escapeHtml(label)}</span>`).join('')}${hasDetails ? `<span class="details-indicator" title="פתיחת דוגמה" aria-hidden="true">⌄</span>` : ''}</div>
+      <div class="word-signals">${hasDetails ? `<span class="details-indicator" title="פתיחת דוגמה" aria-hidden="true">⌄</span>` : ''}</div>
     </div>
+    <div class="word-meta">${partLabels.map(label => `<span class="part-label"><span class="label-kind">סוג:</span> ${escapeHtml(label)}</span>`).join('')}${topicLabels.map(label => `<span class="topic-label"><span class="label-kind">נושא:</span> ${escapeHtml(label)}</span>`).join('')}</div>
     <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
     ${expanded ? `<div class="word-details"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></div>` : ''}
   </article>`;
@@ -193,20 +205,20 @@ function render() {
     };
   });
 
-  renderCategories();
+  renderTopics();
   renderPartsOfSpeech();
 }
 
 $('#filterToggle').onclick = () => {
-  const panel = $('#categoryPanel');
+  const panel = $('#filterPanel');
   const opening = panel.hidden;
   panel.hidden = !opening;
   $('#filterToggle').setAttribute('aria-expanded', String(opening));
-  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת קטגוריות' : 'פתיחת קטגוריות');
+  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת מסננים' : 'פתיחת מסננים');
 };
 
-$('#clearCategories').onclick = () => {
-  selectedCategories.clear();
+$('#clearFilters').onclick = () => {
+  selectedTopics.clear();
   selectedPartsOfSpeech.clear();
   saveUiState();
   render();
@@ -214,16 +226,16 @@ $('#clearCategories').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=12')
+fetch('words.json?v=13')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;
-    const availableCategories = new Set(words.flatMap(categoriesFor));
+    const availableTopics = new Set(words.flatMap(topicsFor));
     const availableParts = new Set(words.flatMap(partsOfSpeechFor));
     let stateChanged = false;
-    selectedCategories.forEach(category => {
-      if (!availableCategories.has(category)) {
-        selectedCategories.delete(category);
+    selectedTopics.forEach(topic => {
+      if (!availableTopics.has(topic)) {
+        selectedTopics.delete(topic);
         stateChanged = true;
       }
     });

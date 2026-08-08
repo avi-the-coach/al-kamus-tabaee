@@ -17,7 +17,10 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - Dictionary entries live in `words.json`.
 - Word IDs are stable. Never renumber or reuse an existing ID.
 - Use Palestinian spoken Arabic, Hebrew transcription with niqqud, a concise Hebrew meaning, and a useful example when available.
-- A word can belong to one category (string) or multiple categories (array). The UI must continue supporting both formats.
+- Keep the two classification dimensions separate:
+  - `topic` / `topics` is thematic (for example work, health, greetings). A word may have no topic or several topics.
+  - `partOfSpeech` / `partsOfSpeech` is grammatical. Every word must have at least one supported word type.
+- The UI must continue accepting legacy `category` / `categories` fields as topic aliases, plus both singular and array formats.
 
 ## UI state
 

@@ -11,6 +11,17 @@ function categoriesFor(word) {
   return (Array.isArray(categories) ? categories : [categories]).filter(Boolean);
 }
 
+const PART_OF_SPEECH_LABELS = {
+  verb: 'פועל', noun: 'שם עצם', question: 'מילת שאלה',
+  preposition: 'מילת יחס', connector: 'מילת קישור',
+  adverb: 'תואר הפועל', possession: 'מילת שייכות', quantifier: 'כַּמָּת'
+};
+
+function partsOfSpeechFor(word) {
+  const parts = word.partsOfSpeech ?? word.partOfSpeech ?? [];
+  return (Array.isArray(parts) ? parts : [parts]).filter(Boolean);
+}
+
 function loadUiState() {
   try {
     const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
@@ -76,17 +87,29 @@ function renderCategories() {
 }
 
 function renderPartsOfSpeech() {
-  document.querySelectorAll('[data-part-of-speech]').forEach(button => {
+  const availableParts = [...new Set(words.flatMap(partsOfSpeechFor))];
+  $('#partChips').innerHTML = [
+    `<button class="chip ${selectedPartsOfSpeech.size === 0 ? 'active' : ''}" id="allPartsOfSpeech" type="button" aria-pressed="${selectedPartsOfSpeech.size === 0}">הכול</button>`,
+    ...availableParts.map(part => {
+      const active = selectedPartsOfSpeech.has(part);
+      return `<button class="chip ${active ? 'active' : ''}" type="button" data-part-of-speech="${escapeHtml(part)}" aria-pressed="${active}">${escapeHtml(PART_OF_SPEECH_LABELS[part] ?? part)}</button>`;
+    })
+  ].join('');
+
+  document.querySelectorAll('#partChips [data-part-of-speech]').forEach(button => {
     const part = button.dataset.partOfSpeech;
-    const active = selectedPartsOfSpeech.has(part);
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', String(active));
+    button.onclick = () => {
+      selectedPartsOfSpeech.has(part) ? selectedPartsOfSpeech.delete(part) : selectedPartsOfSpeech.add(part);
+      saveUiState();
+      render();
+    };
   });
 
-  const allButton = $('#allPartsOfSpeech');
-  const showingAll = selectedPartsOfSpeech.size === 0;
-  allButton.classList.toggle('active', showingAll);
-  allButton.setAttribute('aria-pressed', String(showingAll));
+  $('#allPartsOfSpeech').onclick = () => {
+    selectedPartsOfSpeech.clear();
+    saveUiState();
+    render();
+  };
 }
 
 function wordReference(word) {
@@ -136,7 +159,7 @@ function render() {
   const q = $('#search').value.trim().toLowerCase();
   const shown = words.filter(word =>
     (selectedCategories.size === 0 || categoriesFor(word).some(category => selectedCategories.has(category))) &&
-    (selectedPartsOfSpeech.size === 0 || selectedPartsOfSpeech.has(word.partOfSpeech)) &&
+    (selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   );
 
@@ -146,13 +169,13 @@ function render() {
   $('#grid').innerHTML = shown.map(word => {
     const hasDetails = Boolean(word.example);
     const expanded = hasDetails && expandedWordId === word.id;
-    const partLabel = word.partOfSpeech === 'verb' ? 'פ׳' : word.partOfSpeech === 'noun' ? 'ש׳' : '';
+    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part] ?? part);
     return `<article class="card ${expanded ? 'expanded' : ''}" data-word-id="${escapeHtml(word.id)}">
     <div class="word-row ${hasDetails ? 'has-details' : ''}" ${hasDetails ? `role="button" tabindex="0" aria-expanded="${expanded}"` : ''}>
       <div class="trans">${escapeHtml(word.transcription)}</div>
       <div class="meaning">${escapeHtml(word.meaning)}</div>
       <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
-      <div class="word-signals">${partLabel ? `<span class="part-label" title="${word.partOfSpeech === 'verb' ? 'פועל' : 'שם עצם'}">${partLabel}</span>` : ''}${hasDetails ? `<span class="details-indicator" aria-hidden="true">⌄</span>` : ''}</div>
+      <div class="word-signals">${partLabels.map(label => `<span class="part-label">${escapeHtml(label)}</span>`).join('')}${hasDetails ? `<span class="details-indicator" title="פתיחת דוגמה" aria-hidden="true">⌄</span>` : ''}</div>
     </div>
     <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
     ${expanded ? `<div class="word-details"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></div>` : ''}
@@ -200,21 +223,6 @@ $('#clearCategories').onclick = () => {
   render();
 };
 
-document.querySelectorAll('[data-part-of-speech]').forEach(button => {
-  button.onclick = () => {
-    const part = button.dataset.partOfSpeech;
-    selectedPartsOfSpeech.has(part) ? selectedPartsOfSpeech.delete(part) : selectedPartsOfSpeech.add(part);
-    saveUiState();
-    render();
-  };
-});
-
-$('#allPartsOfSpeech').onclick = () => {
-  selectedPartsOfSpeech.clear();
-  saveUiState();
-  render();
-};
-
 $('#search').oninput = render;
 
 fetch('words.json')
@@ -222,10 +230,17 @@ fetch('words.json')
   .then(data => {
     words = data;
     const availableCategories = new Set(words.flatMap(categoriesFor));
+    const availableParts = new Set(words.flatMap(partsOfSpeechFor));
     let stateChanged = false;
     selectedCategories.forEach(category => {
       if (!availableCategories.has(category)) {
         selectedCategories.delete(category);
+        stateChanged = true;
+      }
+    });
+    selectedPartsOfSpeech.forEach(part => {
+      if (!availableParts.has(part)) {
+        selectedPartsOfSpeech.delete(part);
         stateChanged = true;
       }
     });

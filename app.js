@@ -1,6 +1,41 @@
 let words = [];
+const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
+const UI_STATE_VERSION = 1;
 const selectedCategories = new Set();
 const $ = selector => document.querySelector(selector);
+
+function categoriesFor(word) {
+  const categories = word.categories ?? word.category ?? [];
+  return (Array.isArray(categories) ? categories : [categories]).filter(Boolean);
+}
+
+function loadUiState() {
+  try {
+    const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
+    if (!savedState || savedState.version !== UI_STATE_VERSION) return;
+
+    if (Array.isArray(savedState.selectedCategories)) {
+      savedState.selectedCategories
+        .filter(category => typeof category === 'string')
+        .forEach(category => selectedCategories.add(category));
+    }
+  } catch {
+    // Keep the app usable if storage is unavailable or contains invalid data.
+  }
+}
+
+function saveUiState() {
+  try {
+    localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({
+      version: UI_STATE_VERSION,
+      selectedCategories: [...selectedCategories]
+    }));
+  } catch {
+    // Keep the app usable if storage is unavailable.
+  }
+}
+
+loadUiState();
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, character => ({
@@ -9,7 +44,7 @@ function escapeHtml(value = '') {
 }
 
 function renderCategories() {
-  const categories = [...new Set(words.map(word => word.category).filter(Boolean))];
+  const categories = [...new Set(words.flatMap(categoriesFor))];
   $('#chips').innerHTML = categories.map(category => {
     const active = selectedCategories.has(category);
     return `<button class="chip ${active ? 'active' : ''}" type="button" data-category="${escapeHtml(category)}" aria-pressed="${active}">${escapeHtml(category)}</button>`;
@@ -19,6 +54,7 @@ function renderCategories() {
     button.onclick = () => {
       const category = button.dataset.category;
       selectedCategories.has(category) ? selectedCategories.delete(category) : selectedCategories.add(category);
+      saveUiState();
       render();
     };
   });
@@ -75,7 +111,7 @@ async function copyWord(button, word) {
 function render() {
   const q = $('#search').value.trim().toLowerCase();
   const shown = words.filter(word =>
-    (selectedCategories.size === 0 || selectedCategories.has(word.category)) &&
+    (selectedCategories.size === 0 || categoriesFor(word).some(category => selectedCategories.has(category))) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   );
 
@@ -108,6 +144,7 @@ $('#filterToggle').onclick = () => {
 
 $('#clearCategories').onclick = () => {
   selectedCategories.clear();
+  saveUiState();
   render();
 };
 
@@ -115,5 +152,17 @@ $('#search').oninput = render;
 
 fetch('words.json')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
-  .then(data => { words = data; render(); })
+  .then(data => {
+    words = data;
+    const availableCategories = new Set(words.flatMap(categoriesFor));
+    let stateChanged = false;
+    selectedCategories.forEach(category => {
+      if (!availableCategories.has(category)) {
+        selectedCategories.delete(category);
+        stateChanged = true;
+      }
+    });
+    if (stateChanged) saveUiState();
+    render();
+  })
   .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את המילים.'; });

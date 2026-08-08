@@ -58,7 +58,9 @@ function renderCategories() {
     return `<button class="chip ${active ? 'active' : ''}" type="button" data-category="${escapeHtml(category)}" aria-pressed="${active}">${escapeHtml(category)}</button>`;
   }).join('');
 
-  document.querySelectorAll('.chip').forEach(button => {
+  // Category chips are rebuilt on every render. Limit this handler to the
+  // category container so it does not overwrite the part-of-speech handlers.
+  document.querySelectorAll('#chips .chip').forEach(button => {
     button.onclick = () => {
       const category = button.dataset.category;
       selectedCategories.has(category) ? selectedCategories.delete(category) : selectedCategories.add(category);

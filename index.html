@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>המילון האישי שלי בערבית</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <main class="wrap">
@@ -15,31 +15,24 @@
     </header>
     <section class="grid" id="grid"></section>
   </main>
+
   <aside class="control-panel" aria-label="חיפוש וסינון מילים">
+    <div class="category-panel" id="categoryPanel" hidden>
+      <div class="category-panel-head">
+        <strong>קטגוריות</strong>
+        <button class="clear" id="clearCategories" type="button">נקה הכול</button>
+      </div>
+      <nav class="chips" id="chips" aria-label="בחירת קטגוריות"></nav>
+    </div>
     <div class="control-panel-inner">
-      <section class="tools">
-        <input id="search" class="search" placeholder="חיפוש בערבית, בעברית או בתעתיק…">
-        <button class="add" id="add">הוספת מילה</button>
-      </section>
-      <nav class="chips" id="chips" aria-label="קטגוריות"></nav>
+      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="categoryPanel" aria-label="פתיחת קטגוריות" title="קטגוריות">
+        <span aria-hidden="true">☷</span>
+        <span class="filter-count" id="filterCount" hidden></span>
+      </button>
+      <input id="search" class="search" type="search" placeholder="חיפוש…" aria-label="חיפוש מילים">
     </div>
   </aside>
-  <dialog id="dialog">
-    <form method="dialog" id="form">
-      <h2 id="formTitle">הוספת מילה</h2>
-      <input type="hidden" id="idx">
-      <label>קטגוריה</label>
-      <select id="category"></select>
-      <label>ערבית</label><input id="arabic" dir="rtl" required>
-      <label>תעתיק עברי מנוקד</label><input id="trans" required>
-      <label>פירוש בעברית</label><input id="meaning" required>
-      <label>דוגמה / הערה</label><input id="example">
-      <div class="dlgbtn">
-        <button value="cancel" class="cancel">ביטול</button>
-        <button value="default" class="save" id="save">שמירה</button>
-      </div>
-    </form>
-  </dialog>
-  <script src="app.js"></script>
+
+  <script src="app.js?v=5"></script>
 </body>
 </html>

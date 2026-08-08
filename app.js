@@ -13,10 +13,11 @@ function categoriesFor(word) {
 
 const PART_OF_SPEECH_LABELS = { verb: 'פועל', noun: 'שם עצם' };
 const PART_OF_SPEECH_BADGES = { verb: 'פ׳', noun: 'ש׳' };
+const SUPPORTED_PARTS_OF_SPEECH = new Set(Object.keys(PART_OF_SPEECH_LABELS));
 
 function partsOfSpeechFor(word) {
   const parts = word.partsOfSpeech ?? word.partOfSpeech ?? [];
-  return (Array.isArray(parts) ? parts : [parts]).filter(Boolean);
+  return (Array.isArray(parts) ? parts : [parts]).filter(part => SUPPORTED_PARTS_OF_SPEECH.has(part));
 }
 
 function loadUiState() {
@@ -157,7 +158,7 @@ function render() {
   $('#grid').innerHTML = shown.map(word => {
     const hasDetails = Boolean(word.example);
     const expanded = hasDetails && expandedWordId === word.id;
-  const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_BADGES[part] ?? part);
+    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_BADGES[part]);
     return `<article class="card ${expanded ? 'expanded' : ''}" data-word-id="${escapeHtml(word.id)}">
     <div class="word-row ${hasDetails ? 'has-details' : ''}" ${hasDetails ? `role="button" tabindex="0" aria-expanded="${expanded}"` : ''}>
       <div class="trans">${escapeHtml(word.transcription)}</div>
@@ -213,7 +214,7 @@ $('#clearCategories').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json')
+fetch('words.json?v=12')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;

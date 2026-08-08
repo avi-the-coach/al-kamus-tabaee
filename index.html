@@ -13,13 +13,17 @@
       <h1>המילים שלי בערבית</h1>
       <span class="status" id="status">טוען…</span>
     </header>
-    <section class="tools">
-      <input id="search" class="search" placeholder="חיפוש בערבית, בעברית או בתעתיק…">
-      <button class="add" id="add">הוספת מילה</button>
-    </section>
-    <nav class="chips" id="chips"></nav>
     <section class="grid" id="grid"></section>
   </main>
+  <aside class="control-panel" aria-label="חיפוש וסינון מילים">
+    <div class="control-panel-inner">
+      <section class="tools">
+        <input id="search" class="search" placeholder="חיפוש בערבית, בעברית או בתעתיק…">
+        <button class="add" id="add">הוספת מילה</button>
+      </section>
+      <nav class="chips" id="chips" aria-label="קטגוריות"></nav>
+    </div>
+  </aside>
   <dialog id="dialog">
     <form method="dialog" id="form">
       <h2 id="formTitle">הוספת מילה</h2>

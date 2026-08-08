@@ -1,60 +1,62 @@
-const STORAGE_KEY = 'avi-arabic-words';
 let words = [];
-let active = 'הכול';
+const selectedCategories = new Set();
 const $ = selector => document.querySelector(selector);
 
-function persist() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
+function renderCategories() {
+  const categories = [...new Set(words.map(word => word.category).filter(Boolean))];
+  $('#chips').innerHTML = categories.map(category => {
+    const active = selectedCategories.has(category);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-category="${escapeHtml(category)}" aria-pressed="${active}">${escapeHtml(category)}</button>`;
+  }).join('');
+
+  document.querySelectorAll('.chip').forEach(button => {
+    button.onclick = () => {
+      const category = button.dataset.category;
+      selectedCategories.has(category) ? selectedCategories.delete(category) : selectedCategories.add(category);
+      render();
+    };
+  });
+
+  const count = selectedCategories.size;
+  $('#filterCount').textContent = count;
+  $('#filterCount').hidden = count === 0;
+  $('#filterToggle').classList.toggle('has-filter', count > 0);
 }
 
 function render() {
   const q = $('#search').value.trim().toLowerCase();
-  const categories = ['הכול', ...new Set(words.map(word => word.category))];
-  $('#category').innerHTML = categories.slice(1).map(category => `<option>${category}</option>`).join('');
-  $('#chips').innerHTML = categories.map(category => `<button class="chip ${category === active ? 'active' : ''}" data-category="${category}">${category}</button>`).join('');
-  document.querySelectorAll('.chip').forEach(button => button.onclick = () => { active = button.dataset.category; render(); });
-  const shown = words.map((word, index) => [word, index]).filter(([word]) =>
-    (active === 'הכול' || word.category === active) &&
+  const shown = words.filter(word =>
+    (selectedCategories.size === 0 || selectedCategories.has(word.category)) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   );
+
   $('#status').textContent = `${shown.length} מילים`;
-  $('#grid').innerHTML = shown.map(([word, index]) => `<article class="card">
-    <div class="cat">${word.category}</div>
-    <div class="arabic" lang="ar">${word.arabic}</div>
-    <div class="trans">${word.transcription}</div>
-    <div class="meaning">${word.meaning}</div>
-    ${word.example ? `<div class="example">${word.example}</div>` : ''}
-    <div class="actions"><button class="edit" onclick="openEdit(${index})">עריכה</button></div>
-  </article>`).join('') || '<p>לא נמצאו מילים.</p>';
+  $('#grid').innerHTML = shown.map(word => `<article class="card">
+    <div class="trans">${escapeHtml(word.transcription)}</div>
+    <div class="meaning">${escapeHtml(word.meaning)}</div>
+    <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
+    ${word.example ? `<div class="example">${escapeHtml(word.example)}</div>` : ''}
+  </article>`).join('') || '<p class="empty">לא נמצאו מילים.</p>';
+
+  renderCategories();
 }
 
-function openEdit(index) {
-  const word = words[index];
-  $('#idx').value = index;
-  $('#formTitle').textContent = 'עריכת מילה';
-  $('#category').value = word.category;
-  $('#arabic').value = word.arabic;
-  $('#trans').value = word.transcription;
-  $('#meaning').value = word.meaning;
-  $('#example').value = word.example || '';
-  $('#dialog').showModal();
-}
-
-$('#add').onclick = () => {
-  $('#form').reset();
-  $('#idx').value = '';
-  $('#formTitle').textContent = 'הוספת מילה';
-  $('#dialog').showModal();
+$('#filterToggle').onclick = () => {
+  const panel = $('#categoryPanel');
+  const opening = panel.hidden;
+  panel.hidden = !opening;
+  $('#filterToggle').setAttribute('aria-expanded', String(opening));
+  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת קטגוריות' : 'פתיחת קטגוריות');
 };
 
-$('#save').onclick = event => {
-  event.preventDefault();
-  const word = {category: $('#category').value, arabic: $('#arabic').value, transcription: $('#trans').value, meaning: $('#meaning').value, example: $('#example').value};
-  if (!word.arabic || !word.transcription || !word.meaning) return;
-  const index = $('#idx').value;
-  index === '' ? words.push(word) : words[Number(index)] = word;
-  persist();
-  $('#dialog').close();
+$('#clearCategories').onclick = () => {
+  selectedCategories.clear();
   render();
 };
 
@@ -62,5 +64,5 @@ $('#search').oninput = render;
 
 fetch('words.json')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
-  .then(seed => { words = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || seed; render(); })
+  .then(data => { words = data; render(); })
   .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את המילים.'; });

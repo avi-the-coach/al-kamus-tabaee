@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#18322d">
+  <title>המילון האישי שלי בערבית</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="eyebrow">המילון האישי של אבי</div>
+      <h1>המילים שלי בערבית</h1>
+      <p>ערבית פלסטינית־ירושלמית • לומדים מילה אחת בכל פעם</p>
+    </header>
+    <section class="tools">
+      <input id="search" class="search" placeholder="חיפוש בערבית, בעברית או בתעתיק…">
+      <button class="add" id="add">הוספת מילה</button>
+    </section>
+    <nav class="chips" id="chips"></nav>
+    <div class="status" id="status">טוען מילים…</div>
+    <section class="grid" id="grid"></section>
+  </main>
+  <dialog id="dialog">
+    <form method="dialog" id="form">
+      <h2 id="formTitle">הוספת מילה</h2>
+      <input type="hidden" id="idx">
+      <label>קטגוריה</label>
+      <select id="category"></select>
+      <label>ערבית</label><input id="arabic" dir="rtl" required>
+      <label>תעתיק עברי מנוקד</label><input id="trans" required>
+      <label>פירוש בעברית</label><input id="meaning" required>
+      <label>דוגמה / הערה</label><input id="example">
+      <div class="dlgbtn">
+        <button value="cancel" class="cancel">ביטול</button>
+        <button value="default" class="save" id="save">שמירה</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>

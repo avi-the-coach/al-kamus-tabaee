@@ -35,27 +35,40 @@ function wordReference(word) {
 
 async function copyWord(button, word) {
   const text = wordReference(word);
+  let copied = false;
+
   try {
     await navigator.clipboard.writeText(text);
+    copied = true;
   } catch {
-    const input = document.createElement('textarea');
-    input.value = text;
-    input.style.position = 'fixed';
-    input.style.opacity = '0';
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy');
-    input.remove();
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.readOnly = true;
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.fontSize = '16px';
+    textarea.style.opacity = '0.01';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    copied = document.execCommand('copy');
+    textarea.remove();
   }
 
   const original = button.textContent;
-  button.textContent = '✓';
-  button.classList.add('copied');
-  button.setAttribute('aria-label', 'הועתק');
+  button.textContent = copied ? '✓' : '!';
+  button.classList.toggle('copied', copied);
+  button.setAttribute('aria-label', copied ? 'הועתק' : 'ההעתקה נכשלה');
+  button.title = copied ? 'הועתק' : 'ההעתקה נכשלה';
   window.setTimeout(() => {
     button.textContent = original;
     button.classList.remove('copied');
     button.setAttribute('aria-label', 'העתקת הפניה למילה');
+    button.title = 'העתקת הפניה';
   }, 1200);
 }
 

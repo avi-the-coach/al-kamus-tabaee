@@ -298,7 +298,7 @@ $('#clearFilters').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=15')
+fetch('words.json?v=16')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;

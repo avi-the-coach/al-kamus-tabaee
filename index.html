@@ -16,7 +16,7 @@
     <section class="grid" id="grid"></section>
   </main>
 
-  <aside class="control-panel" aria-label="חיפוש וסינון מילים">
+  <aside class="control-panel" aria-label="חיפוש, סינון ומיון מילים">
     <div class="category-panel" id="filterPanel" hidden>
       <div class="category-panel-head">
         <strong>נושאים</strong>
@@ -27,9 +27,13 @@
         <strong>סוג מילה</strong>
         <div class="chips part-chips" id="partChips" aria-label="בחירת סוגי מילים"></div>
       </div>
+      <div class="filter-section">
+        <strong>מיון</strong>
+        <div class="chips" id="sortChips" aria-label="בחירת סדר המילים"></div>
+      </div>
     </div>
     <div class="control-panel-inner">
-      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel" aria-label="פתיחת מסננים" title="מסננים">
+      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel" aria-label="פתיחת סינון ומיון" title="סינון ומיון">
         <span aria-hidden="true">☷</span>
         <span class="filter-count" id="filterCount" hidden></span>
       </button>
@@ -37,6 +41,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

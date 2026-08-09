@@ -23,6 +23,7 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - The UI must continue accepting legacy `category` / `categories` fields as topic aliases, plus both singular and array formats.
 - For conjugating verbs, use `dictionaryForm` for the conventional dictionary headword (third-person masculine singular, past tense), with Arabic and a pointed Hebrew transcription.
 - Store complete verb paradigms under `conjugations`, using the tense keys `past`, `present`, `future`, and `imperative`, and the person keys `i`, `you_m`, `you_f`, `he`, `she`, `we`, `you_pl`, and `they`.
+- Every conjugating verb must also include spoken active-participle forms under `participles`, using the keys `masculine`, `feminine`, and `plural`; each form contains Arabic and a pointed Hebrew transcription. Do not invent participles for non-conjugating pseudo-verbs such as `بدّي`.
 - Conjugation tables display pointed Hebrew transcription only. Imperative cells must remain empty except for `you_m`, `you_f`, and `you_pl`.
 
 ## UI state

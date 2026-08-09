@@ -167,6 +167,28 @@ function renderDictionaryForm(word) {
   </section>`;
 }
 
+const PARTICIPLE_FORMS = [
+  ['masculine', 'זכר'], ['feminine', 'נקבה'], ['plural', 'רבים']
+];
+
+function renderParticiples(word) {
+  if (!word.participles) return '';
+  const forms = PARTICIPLE_FORMS.map(([key, label]) => {
+    const { transcription = '', arabic = '' } = word.participles[key] ?? {};
+    if (!transcription && !arabic) return '';
+    return `<div class="participle-form">
+      <span class="participle-label">${label}</span>
+      <strong>${escapeHtml(transcription)}</strong>
+      ${arabic ? `<span class="dictionary-form-arabic" lang="ar">${escapeHtml(arabic)}</span>` : ''}
+    </div>`;
+  }).join('');
+  if (!forms) return '';
+  return `<section class="detail-section participle-section">
+    <div class="details-label">צורות בינוני</div>
+    <div class="participle-forms">${forms}</div>
+  </section>`;
+}
+
 function renderConjugations(word) {
   if (!word.conjugations) return '';
   const header = CONJUGATION_TENSES.map(([, label]) => `<th scope="col">${label}</th>`).join('');
@@ -229,11 +251,11 @@ function render() {
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   ));
 
-  if (!shown.some(word => word.id === expandedWordId && (word.example || word.dictionaryForm || word.conjugations))) expandedWordId = null;
+  if (!shown.some(word => word.id === expandedWordId && (word.example || word.dictionaryForm || word.participles || word.conjugations))) expandedWordId = null;
 
   $('#status').textContent = `${shown.length} מילים`;
   $('#grid').innerHTML = shown.map(word => {
-    const hasDetails = Boolean(word.example || word.dictionaryForm || word.conjugations);
+    const hasDetails = Boolean(word.example || word.dictionaryForm || word.participles || word.conjugations);
     const expanded = hasDetails && expandedWordId === word.id;
     const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part]);
     const topicLabels = topicsFor(word);
@@ -249,6 +271,7 @@ function render() {
     ${expanded ? `<div class="word-details">
       ${word.example ? `<section class="detail-section"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></section>` : ''}
       ${renderDictionaryForm(word)}
+      ${renderParticiples(word)}
       ${renderConjugations(word)}
     </div>` : ''}
   </article>`;

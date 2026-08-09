@@ -305,6 +305,11 @@
     "meaning": "עזוב את זה / הנח לזה",
     "example": "חַלִּיהַא, מַא בִּדִּי אַחְכִּי עַנְהַא — עזוב את זה, אני לא רוצה לדבר על זה",
     "dictionaryForm": { "arabic": "خلّى", "transcription": "חַלַּא" },
+    "participles": {
+      "masculine": { "arabic": "مخلّي", "transcription": "מְחַלִּי" },
+      "feminine": { "arabic": "مخلّية", "transcription": "מְחַלְּיֶה" },
+      "plural": { "arabic": "مخلّيين", "transcription": "מְחַלְּיִין" }
+    },
     "conjugations": {
       "past": {
         "i": "חַלֵּית", "you_m": "חַלֵּית", "you_f": "חַלֵּיתִי", "he": "חַלַּא",
@@ -366,6 +371,11 @@
     "meaning": "באתי",
     "example": "אִגֵ׳ית עַאלְוַקֶת — באתי בזמן",
     "dictionaryForm": { "arabic": "إجا", "transcription": "אִגַ׳א" },
+    "participles": {
+      "masculine": { "arabic": "جاي", "transcription": "גַ׳אי" },
+      "feminine": { "arabic": "جاية", "transcription": "גַ׳איֶה" },
+      "plural": { "arabic": "جايين", "transcription": "גַ׳איִין" }
+    },
     "conjugations": {
       "past": {
         "i": "אִגֵ׳ית", "you_m": "אִגֵ׳ית", "you_f": "אִגֵ׳יתִי", "he": "אִגַ׳א",

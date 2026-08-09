@@ -3,6 +3,12 @@ const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
 const UI_STATE_VERSION = 2;
 const selectedTopics = new Set();
 const selectedPartsOfSpeech = new Set();
+const SORT_OPTIONS = {
+  transcription: { label: 'תעתיק', locale: 'he', field: 'transcription' },
+  meaning: { label: 'עברית', locale: 'he', field: 'meaning' },
+  arabic: { label: 'ערבית', locale: 'ar', field: 'arabic' }
+};
+let sortMode = 'transcription';
 let expandedWordId = null;
 const $ = selector => document.querySelector(selector);
 
@@ -45,6 +51,9 @@ function loadUiState() {
         .filter(part => typeof part === 'string')
         .forEach(part => selectedPartsOfSpeech.add(part));
     }
+    if (typeof savedState.sortMode === 'string' && SORT_OPTIONS[savedState.sortMode]) {
+      sortMode = savedState.sortMode;
+    }
   } catch {
     // Keep the app usable if storage is unavailable or contains invalid data.
   }
@@ -55,7 +64,8 @@ function saveUiState() {
     localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({
       version: UI_STATE_VERSION,
       selectedTopics: [...selectedTopics],
-      selectedPartsOfSpeech: [...selectedPartsOfSpeech]
+      selectedPartsOfSpeech: [...selectedPartsOfSpeech],
+      sortMode
     }));
   } catch {
     // Keep the app usable if storage is unavailable.
@@ -112,6 +122,30 @@ function renderPartsOfSpeech() {
   });
 }
 
+function renderSortOptions() {
+  $('#sortChips').innerHTML = Object.entries(SORT_OPTIONS).map(([mode, option]) => {
+    const active = sortMode === mode;
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-sort-mode="${mode}" aria-pressed="${active}">${option.label}</button>`;
+  }).join('');
+
+  document.querySelectorAll('#sortChips [data-sort-mode]').forEach(button => {
+    button.onclick = () => {
+      sortMode = button.dataset.sortMode;
+      saveUiState();
+      render();
+    };
+  });
+}
+
+function sortWords(items) {
+  const option = SORT_OPTIONS[sortMode];
+  const collator = new Intl.Collator(option.locale, { sensitivity: 'base', numeric: true });
+  return [...items].sort((a, b) =>
+    collator.compare(a[option.field] ?? '', b[option.field] ?? '') ||
+    String(a.id).localeCompare(String(b.id))
+  );
+}
+
 function wordReference(word) {
   return `[AL-KAMUS word_id=${word.id}] ${word.transcription} | ${word.meaning} | ${word.arabic}`;
 }
@@ -157,11 +191,11 @@ async function copyWord(button, word) {
 
 function render() {
   const q = $('#search').value.trim().toLowerCase();
-  const shown = words.filter(word =>
+  const shown = sortWords(words.filter(word =>
     (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
     (selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
-  );
+  ));
 
   if (!shown.some(word => word.id === expandedWordId && word.example)) expandedWordId = null;
 
@@ -208,6 +242,7 @@ function render() {
 
   renderTopics();
   renderPartsOfSpeech();
+  renderSortOptions();
 }
 
 $('#filterToggle').onclick = () => {
@@ -215,7 +250,7 @@ $('#filterToggle').onclick = () => {
   const opening = panel.hidden;
   panel.hidden = !opening;
   $('#filterToggle').setAttribute('aria-expanded', String(opening));
-  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת מסננים' : 'פתיחת מסננים');
+  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת סינון ומיון' : 'פתיחת סינון ומיון');
 };
 
 $('#clearFilters').onclick = () => {

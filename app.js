@@ -18,6 +18,7 @@ const PART_OF_SPEECH_LABELS = {
   preposition: 'מילת יחס',
   conjunction: 'מילת קישור',
   adverb: 'תואר הפועל',
+  affirmation_word: 'מילת אישור',
   possessive_word: 'מילת שייכות',
   relative_pronoun: 'כינוי זיקה',
   quantifier: 'מילת כמות'
@@ -226,7 +227,7 @@ $('#clearFilters').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=13')
+fetch('words.json?v=14')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;

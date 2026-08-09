@@ -304,5 +304,41 @@
     "transcription": "חַלִּיהַא",
     "meaning": "עזוב את זה / הנח לזה",
     "example": "חַלִּיהַא, מַא בִּדִּי אַחְכִּי עַנְהַא — עזוב את זה, אני לא רוצה לדבר על זה"
+  },
+  {
+    "id": "w-035",
+    "topic": "אישור והסכמה",
+    "partOfSpeech": "adverb",
+    "arabic": "طبعًا",
+    "transcription": "טַבְּעַן",
+    "meaning": "כמובן / בטח",
+    "example": "טַבְּעַן בַּאגִ'י — כמובן שאני בא"
+  },
+  {
+    "id": "w-036",
+    "topic": "אישור והסכמה",
+    "partOfSpeech": "affirmation_word",
+    "arabic": "أيوه",
+    "transcription": "אַיְוַה",
+    "meaning": "כן",
+    "example": "אַיְוַה, פַאהֶם עַלֵיכּ — כן, אני מבין אותך"
+  },
+  {
+    "id": "w-037",
+    "topic": "אישור והסכמה",
+    "partOfSpeech": "affirmation_word",
+    "arabic": "آه",
+    "transcription": "אָה",
+    "meaning": "כן (בדיבור יומיומי)",
+    "example": "אָה, מַעַכּ חַקّ — כן, אתה צודק"
+  },
+  {
+    "id": "w-038",
+    "topic": "אישור והסכמה",
+    "partOfSpeech": "affirmation_word",
+    "arabic": "صحّ",
+    "transcription": "סַח",
+    "meaning": "נכון / בדיוק",
+    "example": "סַח, הַאדַא אִלְחַכִּי — נכון, זה העניין"
   }
 ]

@@ -21,6 +21,9 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
   - `topic` / `topics` is thematic (for example work, health, greetings). A word may have no topic or several topics.
   - `partOfSpeech` / `partsOfSpeech` is grammatical. Every word must have at least one supported word type.
 - The UI must continue accepting legacy `category` / `categories` fields as topic aliases, plus both singular and array formats.
+- For conjugating verbs, use `dictionaryForm` for the conventional dictionary headword (third-person masculine singular, past tense), with Arabic and a pointed Hebrew transcription.
+- Store complete verb paradigms under `conjugations`, using the tense keys `past`, `present`, `future`, and `imperative`, and the person keys `i`, `you_m`, `you_f`, `he`, `she`, `we`, `you_pl`, and `they`.
+- Conjugation tables display pointed Hebrew transcription only. Imperative cells must remain empty except for `you_m`, `you_f`, and `you_pl`.
 
 ## UI state
 

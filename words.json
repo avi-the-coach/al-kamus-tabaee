@@ -460,5 +460,149 @@
     "transcription": "לַאזֶם",
     "meaning": "צריך / חייב / הכרחי",
     "example": "לַאזֶם אַרוּח הַלַּא — אני צריך ללכת עכשיו"
+  },
+  {
+    "id": "w-043",
+    "topic": "מגורים ומקומות",
+    "partOfSpeech": "noun",
+    "arabic": "خيمة",
+    "transcription": "חֵ'ימֶה",
+    "meaning": "אוהל",
+    "example": "נַאיְמִין בְּחֵ'ימֶה — ישנים באוהל"
+  },
+  {
+    "id": "w-044",
+    "topic": "זמן ותדירות",
+    "partOfSpeech": "noun",
+    "arabic": "ليل",
+    "transcription": "לֵיל",
+    "meaning": "לילה",
+    "example": "בְּנֻץּ אִלְלֵיל — באמצע הלילה"
+  },
+  {
+    "id": "w-045",
+    "topic": "טבע והעולם",
+    "partOfSpeech": "noun",
+    "arabic": "نجوم",
+    "transcription": "נְג'וּם",
+    "meaning": "כוכבים",
+    "example": "מַלַאיִין נְג'וּם — מיליוני כוכבים"
+  },
+  {
+    "id": "w-046",
+    "topics": [],
+    "partOfSpeech": "verb",
+    "arabic": "شاف / بيشوف",
+    "transcription": "שַאף / בִּישוּף",
+    "meaning": "ראה / לראות",
+    "example": "שוּ בִּתְשוּף? — מה אתה רואה?",
+    "dictionaryForm": { "arabic": "شاف", "transcription": "שַאף" },
+    "participles": {
+      "masculine": { "arabic": "شايف", "transcription": "שַאיֶף" },
+      "feminine": { "arabic": "شايفة", "transcription": "שַאיְפֶה" },
+      "plural": { "arabic": "شايفين", "transcription": "שַאיְפִין" }
+    },
+    "conjugations": {
+      "past": {
+        "i": "שֻפְת", "you_m": "שֻפְת", "you_f": "שֻפְתִי", "he": "שַאף",
+        "she": "שַאפַת", "we": "שֻפְנַא", "you_pl": "שֻפְתוּ", "they": "שַאפוּ"
+      },
+      "present": {
+        "i": "בַּשוּף", "you_m": "בִּתְשוּף", "you_f": "בִּתְשוּפִי", "he": "בִּישוּף",
+        "she": "בִּתְשוּף", "we": "בִּנְשוּף", "you_pl": "בִּתְשוּפוּ", "they": "בִּישוּפוּ"
+      },
+      "future": {
+        "i": "רַח אַשוּף", "you_m": "רַח תְשוּף", "you_f": "רַח תְשוּפִי", "he": "רַח יְשוּף",
+        "she": "רַח תְשוּף", "we": "רַח נְשוּף", "you_pl": "רַח תְשוּפוּ", "they": "רַח יְשוּפוּ"
+      },
+      "imperative": { "you_m": "שוּף", "you_f": "שוּפִי", "you_pl": "שוּפוּ" }
+    }
+  },
+  {
+    "id": "w-047",
+    "topic": "חשיבה וידע",
+    "partOfSpeech": "verb",
+    "arabic": "فكّر / بفكّر",
+    "transcription": "פַכַּר / בְּפַכֶּר",
+    "meaning": "חשב / לחשוב",
+    "example": "הַאד בְּחַלִּינִי אַפַכֶּר בִּלְכּוֹן — זה גורם לי לחשוב על היקום",
+    "dictionaryForm": { "arabic": "فكّر", "transcription": "פַכַּר" },
+    "participles": {
+      "masculine": { "arabic": "مفكّر", "transcription": "מְפַכֶּר" },
+      "feminine": { "arabic": "مفكّرة", "transcription": "מְפַכְּרֶה" },
+      "plural": { "arabic": "مفكّرين", "transcription": "מְפַכְּרִין" }
+    },
+    "conjugations": {
+      "past": {
+        "i": "פַכַּרְת", "you_m": "פַכַּרְת", "you_f": "פַכַּרְתִי", "he": "פַכַּר",
+        "she": "פַכַּרַת", "we": "פַכַּרְנַא", "you_pl": "פַכַּרְתוּ", "they": "פַכַּרוּ"
+      },
+      "present": {
+        "i": "בְּפַכֶּר", "you_m": "בְּתְפַכֶּר", "you_f": "בְּתְפַכְּרִי", "he": "בִּפַכֶּר",
+        "she": "בְּתְפַכֶּר", "we": "בִּנְפַכֶּר", "you_pl": "בְּתְפַכְּרוּ", "they": "בִּפַכְּרוּ"
+      },
+      "future": {
+        "i": "רַח אַפַכֶּר", "you_m": "רַח תְפַכֶּר", "you_f": "רַח תְפַכְּרִי", "he": "רַח יְפַכֶּר",
+        "she": "רַח תְפַכֶּר", "we": "רַח נְפַכֶּר", "you_pl": "רַח תְפַכְּרוּ", "they": "רַח יְפַכְּרוּ"
+      },
+      "imperative": { "you_m": "פַכֶּר", "you_f": "פַכְּרִי", "you_pl": "פַכְּרוּ" }
+    }
+  },
+  {
+    "id": "w-048",
+    "topic": "טבע והעולם",
+    "partOfSpeech": "noun",
+    "arabic": "كون",
+    "transcription": "כּוֹן",
+    "meaning": "יקום",
+    "example": "בַּפַכֶּר בִּלְכּוֹן — אני חושב על היקום"
+  },
+  {
+    "id": "w-049",
+    "topic": "תכונות ותיאורים",
+    "partOfSpeech": "noun",
+    "arabic": "عظمة",
+    "transcription": "עַטַ'מֶה",
+    "meaning": "גדולה / עוצמה",
+    "example": "עַטַ'מֶת אַלָּה — גדולת האל"
+  },
+  {
+    "id": "w-050",
+    "topic": "דת ואמונה",
+    "partOfSpeech": "noun",
+    "arabic": "الله",
+    "transcription": "אַלָּה",
+    "meaning": "אלוהים / האל",
+    "example": "עַטַ'מֶת אַלָּה — גדולת האל"
+  },
+  {
+    "id": "w-051",
+    "topics": [],
+    "partOfSpeech": "verb",
+    "arabic": "سرق / بيسرق",
+    "transcription": "סַרַק / בִּיסְרֹק",
+    "meaning": "גנב / לגנוב",
+    "example": "סַרְקוּ אִלְחֵ'ימֶה — גנבו את האוהל",
+    "dictionaryForm": { "arabic": "سرق", "transcription": "סַרַק" },
+    "participles": {
+      "masculine": { "arabic": "سارق", "transcription": "סַארֶק" },
+      "feminine": { "arabic": "سارقة", "transcription": "סַארְקֶה" },
+      "plural": { "arabic": "سارقين", "transcription": "סַארְקִין" }
+    },
+    "conjugations": {
+      "past": {
+        "i": "סַרַקְת", "you_m": "סַרַקְת", "you_f": "סַרַקְתִי", "he": "סַרַק",
+        "she": "סַרַקַת", "we": "סַרַקְנַא", "you_pl": "סַרַקְתוּ", "they": "סַרְקוּ"
+      },
+      "present": {
+        "i": "בַּסְרֹק", "you_m": "בִּתְסְרֹק", "you_f": "בִּתְסְרְקִי", "he": "בִּיסְרֹק",
+        "she": "בִּתְסְרֹק", "we": "בִּנְסְרֹק", "you_pl": "בִּתְסְרְקוּ", "they": "בִּיסְרְקוּ"
+      },
+      "future": {
+        "i": "רַח אַסְרֹק", "you_m": "רַח תִסְרֹק", "you_f": "רַח תִסְרְקִי", "he": "רַח יִסְרֹק",
+        "she": "רַח תִסְרֹק", "we": "רַח נִסְרֹק", "you_pl": "רַח תִסְרְקוּ", "they": "רַח יִסְרְקוּ"
+      },
+      "imperative": { "you_m": "אִסְרֹק", "you_f": "אִסְרְקִי", "you_pl": "אִסְרְקוּ" }
+    }
   }
 ]

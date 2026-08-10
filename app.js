@@ -19,6 +19,7 @@ function topicsFor(word) {
 
 const PART_OF_SPEECH_LABELS = {
   verb: 'פועל',
+  adjective: 'שם תואר',
   noun: 'שם עצם',
   question_word: 'מילת שאלה',
   preposition: 'מילת יחס',
@@ -321,7 +322,7 @@ $('#clearFilters').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=17')
+fetch('words.json?v=18')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;

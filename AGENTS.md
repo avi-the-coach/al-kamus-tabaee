@@ -26,6 +26,20 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - Every conjugating verb must also include spoken active-participle forms under `participles`, using the keys `masculine`, `feminine`, and `plural`; each form contains Arabic and a pointed Hebrew transcription. Do not invent participles for non-conjugating pseudo-verbs such as `بدّي`.
 - Conjugation tables display pointed Hebrew transcription only. Imperative cells must remain empty except for `you_m`, `you_f`, and `you_pl`.
 
+### New-entry checklist
+
+Before adding a word:
+
+1. Confirm the Palestinian-Jerusalem spoken form, meaning, pointed Hebrew transcription, and grammatical type. Do not infer a form from Modern Standard Arabic when a spoken form is available.
+2. Allocate the next unused stable `w-NNN` ID and add a natural everyday example.
+3. If the entry is a conjugating verb, use `w-041` (`حسّ`) as the canonical complete-data reference and include all of the following:
+   - `dictionaryForm`: third-person masculine singular past, in Arabic and pointed Hebrew transcription.
+   - `participles`: `masculine`, `feminine`, and `plural`, each in Arabic and pointed Hebrew transcription.
+   - `conjugations.past`, `.present`, and `.future`: all eight person keys.
+   - `conjugations.imperative`: exactly `you_m`, `you_f`, and `you_pl`; the UI leaves every other imperative cell empty.
+4. If the entry is not a conjugating verb (for example `لازم` or `بدّي`), do not manufacture a dictionary form, participles, tense table, or imperative. Classify and explain it according to its real grammatical behavior.
+5. Run `node scripts/validate-dictionary.js` before publishing. It validates the complete JSON file, unique IDs, required base fields, and the full schema of every conjugating verb.
+
 ## UI state
 
 - Persist user interface choices in `localStorage` so refreshes preserve continuity.

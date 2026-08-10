@@ -421,5 +421,44 @@
       },
       "imperative": { "you_m": "אִסְתַנַּא", "you_f": "אִסְתַנִּי", "you_pl": "אִסְתַנּוּ" }
     }
+  },
+  {
+    "id": "w-041",
+    "topic": "רגשות ותחושות",
+    "partOfSpeech": "verb",
+    "arabic": "حسّ",
+    "transcription": "חַסּ",
+    "meaning": "הרגיש / להרגיש",
+    "example": "אַנַא בַּחִסּ אִנּוֹ פִי אִשִי מִש מַזְבּוּט — אני מרגיש שמשהו לא בסדר",
+    "dictionaryForm": { "arabic": "حسّ", "transcription": "חַסּ" },
+    "participles": {
+      "masculine": { "arabic": "حاسس", "transcription": "חַאסֶס" },
+      "feminine": { "arabic": "حاسّة", "transcription": "חַאסֶּה" },
+      "plural": { "arabic": "حاسّين", "transcription": "חַאסִּין" }
+    },
+    "conjugations": {
+      "past": {
+        "i": "חַסֵּית", "you_m": "חַסֵּית", "you_f": "חַסֵּיתִי", "he": "חַסּ",
+        "she": "חַסַּת", "we": "חַסֵּינַא", "you_pl": "חַסֵּיתוּ", "they": "חַסּוּ"
+      },
+      "present": {
+        "i": "בַּחִסּ", "you_m": "בִּתְחִסּ", "you_f": "בִּתְחִסִּי", "he": "בִּיחִסּ",
+        "she": "בִּתְחִסּ", "we": "בִּנְחִסּ", "you_pl": "בִּתְחִסּוּ", "they": "בִּיחִסּוּ"
+      },
+      "future": {
+        "i": "רַח אַחִסּ", "you_m": "רַח תְחִסּ", "you_f": "רַח תְחִסִּי", "he": "רַח יְחִסּ",
+        "she": "רַח תְחִסּ", "we": "רַח נְחִסּ", "you_pl": "רַח תְחִסּוּ", "they": "רַח יְחִסּוּ"
+      },
+      "imperative": { "you_m": "חִסּ", "you_f": "חִסִּי", "you_pl": "חִסּוּ" }
+    }
+  },
+  {
+    "id": "w-042",
+    "topics": [],
+    "partOfSpeech": "adjective",
+    "arabic": "لازم",
+    "transcription": "לַאזֶם",
+    "meaning": "צריך / חייב / הכרחי",
+    "example": "לַאזֶם אַרוּח הַלַּא — אני צריך ללכת עכשיו"
   }
 ]

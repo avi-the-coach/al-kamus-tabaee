@@ -4,10 +4,9 @@
 
 This repository contains Avi's personal Palestinian Arabic dictionary, deployed with GitHub Pages from the `main` branch.
 
-## Standing authorization and workflow
+## Publishing workflow
 
-- Avi has given standing authorization to apply requested dictionary and app changes directly to `main`.
-- Do not leave an explicitly requested change only as a proposal. Implement it, verify it reached `main`, and report the commit.
+- Do not leave an explicitly requested change only as a proposal. Implement it and verify that the public GitHub Pages site contains the requested result before reporting completion.
 - Ask again only when the requested target is ambiguous or the action is destructive, security-sensitive, or outside this repository.
 - When frontend assets change, bump their cache-busting query string in `index.html`.
 - After updates, verify the relevant files on `main`. GitHub Pages normally refreshes within a few minutes.

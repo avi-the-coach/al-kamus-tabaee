@@ -190,6 +190,17 @@ function renderParticiples(word) {
   </section>`;
 }
 
+function renderPronounForms(word) {
+  if (!word.pronounForms) return '';
+  const rows = CONJUGATION_PERSONS.map(([person, label]) =>
+    `<tr><th scope="row">${label}</th><td>${escapeHtml(word.pronounForms[person] ?? '')}</td></tr>`
+  ).join('');
+  return `<section class="detail-section pronoun-forms-section">
+    <div class="details-label">הטיות לפי גוף</div>
+    <div class="conjugation-scroll"><table class="conjugation-table"><thead><tr><th scope="col">גוף</th><th scope="col">צורה</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
 function renderConjugations(word) {
   if (!word.conjugations) return '';
   const header = CONJUGATION_TENSES.map(([, label]) => `<th scope="col">${label}</th>`).join('');
@@ -252,11 +263,11 @@ function render() {
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   ));
 
-  if (!shown.some(word => word.id === expandedWordId && (word.example || word.dictionaryForm || word.participles || word.conjugations))) expandedWordId = null;
+  if (!shown.some(word => word.id === expandedWordId && (word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations))) expandedWordId = null;
 
   $('#status').textContent = `${shown.length} מילים`;
   $('#grid').innerHTML = shown.map(word => {
-    const hasDetails = Boolean(word.example || word.dictionaryForm || word.participles || word.conjugations);
+    const hasDetails = Boolean(word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations);
     const expanded = hasDetails && expandedWordId === word.id;
     const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part]);
     const topicLabels = topicsFor(word);
@@ -270,9 +281,11 @@ function render() {
     <div class="word-meta">${partLabels.map(label => `<span class="part-label">${escapeHtml(label)}</span>`).join('')}${topicLabels.map(label => `<span class="topic-label">${escapeHtml(label)}</span>`).join('')}</div>
     <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
     ${expanded ? `<div class="word-details">
+      ${word.explanation ? `<section class="detail-section"><div class="details-label">הסבר</div><div class="example">${escapeHtml(word.explanation)}</div></section>` : ''}
       ${word.example ? `<section class="detail-section"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></section>` : ''}
       ${renderDictionaryForm(word)}
       ${renderParticiples(word)}
+      ${renderPronounForms(word)}
       ${renderConjugations(word)}
     </div>` : ''}
   </article>`;
@@ -322,7 +335,7 @@ $('#clearFilters').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=19')
+fetch('words.json?v=20')
   .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
   .then(data => {
     words = data;

@@ -223,8 +223,7 @@ function renderConjugations(word) {
   </section>`;
 }
 
-async function copyWord(button, word) {
-  const text = wordReference(word);
+async function copyText(button, text, defaultLabel) {
   let copied = false;
 
   try {
@@ -257,9 +256,18 @@ async function copyWord(button, word) {
   window.setTimeout(() => {
     button.textContent = original;
     button.classList.remove('copied');
-    button.setAttribute('aria-label', 'העתקת הפניה למילה');
-    button.title = 'העתקת הפניה';
+    button.setAttribute('aria-label', defaultLabel);
+    button.title = defaultLabel;
   }, 1200);
+}
+
+function copyWord(button, word) {
+  return copyText(button, wordReference(word), 'העתקת הפניה למילה');
+}
+
+function copyPhrase(button, phrase) {
+  const text = `${phrase.transcription} | ${phrase.literal} | ${phrase.meaning}`;
+  return copyText(button, text, 'העתקת המשפט והתרגומים');
 }
 
 function render() {
@@ -318,7 +326,7 @@ function render() {
     };
   });
 
-  document.querySelectorAll('.copy-word').forEach(button => {
+  document.querySelectorAll('.card .copy-word').forEach(button => {
     button.onclick = () => {
       const word = words.find(item => item.id === button.dataset.wordId);
       if (word) copyWord(button, word);
@@ -341,8 +349,18 @@ function renderPhrases() {
   $('#phraseRows').innerHTML = shown.map(phrase => `<tr>
     <td class="phrase-transcription">${escapeHtml(phrase.transcription)}</td>
     <td class="phrase-literal">${escapeHtml(phrase.literal)}</td>
-    <td class="phrase-meaning">${escapeHtml(phrase.meaning)}</td>
+    <td class="phrase-meaning"><div class="phrase-meaning-content">
+      <span>${escapeHtml(phrase.meaning)}</span>
+      <button class="copy-word copy-phrase" type="button" data-phrase-id="${escapeHtml(phrase.id)}" aria-label="העתקת המשפט והתרגומים" title="העתקת המשפט והתרגומים">⧉</button>
+    </div></td>
   </tr>`).join('') || '<tr><td class="phrase-empty" colspan="3">לא נמצאו משפטים.</td></tr>';
+
+  document.querySelectorAll('.copy-phrase').forEach(button => {
+    button.onclick = () => {
+      const phrase = phrases.find(item => item.id === button.dataset.phraseId);
+      if (phrase) copyPhrase(button, phrase);
+    };
+  });
 }
 
 function setActiveView(view) {

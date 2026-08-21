@@ -49,4 +49,5 @@ Before adding a word:
 - The phrases view is a separate sub-application, not part of the dictionary or `words.json`.
 - Store its records in `phrases.json`, with stable `p-NNN` IDs and the fields `transcription`, `literal`, and `meaning`.
 - Display exactly three right-to-left columns: pointed Hebrew transcription, literal Hebrew translation, and natural Hebrew translation. Do not display Arabic-script text in this view.
+- Keep a compact copy button at the left edge of each phrase row; copy the transcription, literal translation, and natural translation in that order.
 - Keep the dictionary and phrases views independently searchable, and remember the selected view in the shared UI state.

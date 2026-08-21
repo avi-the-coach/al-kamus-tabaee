@@ -100,6 +100,25 @@ header h1 {
   color: #176b55;
 }
 
+.phrase-meaning-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.phrase-meaning-content > span {
+  min-width: 0;
+  flex: 1;
+}
+
+.copy-phrase {
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  margin: -3px 0 0 -3px;
+  font-size: 14px;
+}
+
 .phrase-empty {
   color: var(--muted);
   text-align: center !important;
@@ -149,5 +168,12 @@ header h1 {
   .phrase-literal,
   .phrase-meaning {
     font-size: 11px;
+  }
+
+  .copy-phrase {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+    font-size: 13px;
   }
 }

@@ -1,0 +1,50 @@
+{
+  "families": [
+    {
+      "id": "hal",
+      "label": "חַאל",
+      "meaning": "מצב / עצמי",
+      "matches": [
+        {
+          "phraseId": "p-012",
+          "words": ["חַאלַכּ"]
+        },
+        {
+          "phraseId": "p-015",
+          "words": ["חַאלַכּ"]
+        },
+        {
+          "phraseId": "p-019",
+          "words": ["חַאלִי"]
+        },
+        {
+          "phraseId": "p-037",
+          "words": ["חַאלִי"]
+        }
+      ]
+    },
+    {
+      "id": "bal",
+      "label": "בַּאל",
+      "meaning": "מחשבה / דעת",
+      "matches": [
+        {
+          "phraseId": "p-003",
+          "words": ["בַּאלִי"]
+        },
+        {
+          "phraseId": "p-004",
+          "words": ["בַּאלִי"]
+        },
+        {
+          "phraseId": "p-012",
+          "words": ["בַּאלַכּ"]
+        },
+        {
+          "phraseId": "p-013",
+          "words": ["בַּאלַכּ"]
+        }
+      ]
+    }
+  ]
+}

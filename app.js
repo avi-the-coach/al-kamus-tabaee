@@ -1,9 +1,13 @@
 let words = [];
 let phrases = [];
+let phraseFamilies = [];
+const phraseFamiliesById = new Map();
+const phraseFamilyMatchesByPhrase = new Map();
 const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
 const UI_STATE_VERSION = 2;
 const selectedTopics = new Set();
 const selectedPartsOfSpeech = new Set();
+const selectedPhraseFamilies = new Set();
 const SORT_OPTIONS = {
   transcription: { label: 'תעתיק', locale: 'he', field: 'transcription' },
   meaning: { label: 'עברית', locale: 'he', field: 'meaning' },
@@ -55,6 +59,11 @@ function loadUiState() {
         .filter(part => typeof part === 'string')
         .forEach(part => selectedPartsOfSpeech.add(part));
     }
+    if (Array.isArray(savedState.selectedPhraseFamilies)) {
+      savedState.selectedPhraseFamilies
+        .filter(familyId => typeof familyId === 'string')
+        .forEach(familyId => selectedPhraseFamilies.add(familyId));
+    }
     if (typeof savedState.sortMode === 'string' && SORT_OPTIONS[savedState.sortMode]) {
       sortMode = savedState.sortMode;
     }
@@ -72,6 +81,7 @@ function saveUiState() {
       version: UI_STATE_VERSION,
       selectedTopics: [...selectedTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech],
+      selectedPhraseFamilies: [...selectedPhraseFamilies],
       sortMode,
       activeView
     }));
@@ -270,6 +280,78 @@ function copyPhrase(button, phrase) {
   return copyText(button, text, 'העתקת המשפט והתרגומים');
 }
 
+function indexPhraseFamilies(families) {
+  phraseFamilies = families;
+  phraseFamiliesById.clear();
+  phraseFamilyMatchesByPhrase.clear();
+
+  families.forEach(family => {
+    phraseFamiliesById.set(family.id, family);
+    family.matches.forEach(match => {
+      const matches = phraseFamilyMatchesByPhrase.get(match.phraseId) ?? [];
+      matches.push({ family, words: match.words });
+      phraseFamilyMatchesByPhrase.set(match.phraseId, matches);
+    });
+  });
+}
+
+function renderPhraseTranscription(phrase) {
+  const familyMatches = phraseFamilyMatchesByPhrase.get(phrase.id) ?? [];
+  const linkedWords = [];
+
+  familyMatches.forEach(({ family, words: familyWords }) => {
+    familyWords.forEach(word => {
+      let start = phrase.transcription.indexOf(word);
+      while (start !== -1) {
+        linkedWords.push({ start, end: start + word.length, word, family });
+        start = phrase.transcription.indexOf(word, start + word.length);
+      }
+    });
+  });
+
+  linkedWords.sort((left, right) => left.start - right.start || right.end - left.end);
+  let position = 0;
+  let output = '';
+
+  linkedWords.forEach(match => {
+    if (match.start < position) return;
+    output += escapeHtml(phrase.transcription.slice(position, match.start));
+    const active = selectedPhraseFamilies.has(match.family.id);
+    const label = `${match.family.label} — ${match.family.meaning}`;
+    output += `<button class="phrase-family-link ${active ? 'active' : ''}" type="button" data-family-id="${escapeHtml(match.family.id)}" aria-pressed="${active}" title="${escapeHtml(label)}">${escapeHtml(match.word)}</button>`;
+    position = match.end;
+  });
+
+  return output + escapeHtml(phrase.transcription.slice(position));
+}
+
+function togglePhraseFamily(familyId) {
+  if (!phraseFamiliesById.has(familyId)) return;
+  selectedPhraseFamilies.has(familyId)
+    ? selectedPhraseFamilies.delete(familyId)
+    : selectedPhraseFamilies.add(familyId);
+  saveUiState();
+  renderPhrases();
+}
+
+function renderPhraseFamilyControls() {
+  $('#phraseFamilyChips').innerHTML = phraseFamilies.map(family => {
+    const active = selectedPhraseFamilies.has(family.id);
+    const suffix = active ? '<span class="phrase-family-remove" aria-hidden="true">×</span>' : '';
+    return `<button class="chip phrase-family-chip ${active ? 'active' : ''}" type="button" data-family-id="${escapeHtml(family.id)}" aria-pressed="${active}" title="${escapeHtml(family.meaning)}">${escapeHtml(family.label)}${suffix}</button>`;
+  }).join('');
+
+  document.querySelectorAll('#phraseFamilyChips [data-family-id]').forEach(button => {
+    button.onclick = () => togglePhraseFamily(button.dataset.familyId);
+  });
+
+  const count = selectedPhraseFamilies.size;
+  $('#filterCount').textContent = count;
+  $('#filterCount').hidden = count === 0;
+  $('#filterToggle').classList.toggle('has-filter', count > 0);
+  $('#clearPhraseFamilies').hidden = count === 0;
+}
+
 function render() {
   if (activeView === 'phrases') {
     renderPhrases();
@@ -340,14 +422,18 @@ function render() {
 
 function renderPhrases() {
   const query = $('#search').value.trim().toLowerCase();
-  const shown = phrases.filter(phrase =>
-    !query || [phrase.transcription, phrase.literal, phrase.meaning]
-      .some(value => value.toLowerCase().includes(query))
-  );
+  const shown = phrases.filter(phrase => {
+    const matches = phraseFamilyMatchesByPhrase.get(phrase.id) ?? [];
+    const matchingFamilies = new Set(matches.map(match => match.family.id));
+    const familyMatch = [...selectedPhraseFamilies].every(familyId => matchingFamilies.has(familyId));
+    const searchMatch = !query || [phrase.transcription, phrase.literal, phrase.meaning]
+      .some(value => value.toLowerCase().includes(query));
+    return familyMatch && searchMatch;
+  });
 
   $('#status').textContent = `${shown.length} משפטים`;
   $('#phraseRows').innerHTML = shown.map(phrase => `<tr>
-    <td class="phrase-transcription">${escapeHtml(phrase.transcription)}</td>
+    <td class="phrase-transcription">${renderPhraseTranscription(phrase)}</td>
     <td class="phrase-literal">${escapeHtml(phrase.literal)}</td>
     <td class="phrase-meaning"><div class="phrase-meaning-content">
       <span>${escapeHtml(phrase.meaning)}</span>
@@ -361,6 +447,12 @@ function renderPhrases() {
       if (phrase) copyPhrase(button, phrase);
     };
   });
+
+  document.querySelectorAll('.phrase-family-link').forEach(button => {
+    button.onclick = () => togglePhraseFamily(button.dataset.familyId);
+  });
+
+  renderPhraseFamilyControls();
 }
 
 function setActiveView(view) {
@@ -377,9 +469,11 @@ function setActiveView(view) {
   $('#grid').hidden = showingPhrases;
   $('#phraseView').hidden = !showingPhrases;
   $('.control-panel').classList.toggle('phrase-controls', showingPhrases);
-  $('#filterToggle').hidden = showingPhrases;
+  $('#filterToggle').hidden = false;
   $('#filterPanel').hidden = true;
+  $('#phraseFilterPanel').hidden = true;
   $('#filterToggle').setAttribute('aria-expanded', 'false');
+  $('#filterToggle').setAttribute('aria-controls', showingPhrases ? 'phraseFilterPanel' : 'filterPanel');
 
   document.querySelectorAll('[data-view]').forEach(button => {
     const active = button.dataset.view === activeView;
@@ -396,11 +490,17 @@ document.querySelectorAll('[data-view]').forEach(button => {
 });
 
 $('#filterToggle').onclick = () => {
-  const panel = $('#filterPanel');
+  const panel = activeView === 'phrases' ? $('#phraseFilterPanel') : $('#filterPanel');
   const opening = panel.hidden;
   panel.hidden = !opening;
   $('#filterToggle').setAttribute('aria-expanded', String(opening));
   $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת סינון ומיון' : 'פתיחת סינון ומיון');
+};
+
+$('#clearPhraseFamilies').onclick = () => {
+  selectedPhraseFamilies.clear();
+  saveUiState();
+  renderPhrases();
 };
 
 $('#clearFilters').onclick = () => {
@@ -420,10 +520,15 @@ Promise.all([
   fetch('phrases.json?v=1').then(response => {
     if (!response.ok) throw new Error('Could not load phrases');
     return response.json();
+  }),
+  fetch('phrase-families.json?v=1').then(response => {
+    if (!response.ok) throw new Error('Could not load phrase families');
+    return response.json();
   })
-]).then(([loadedWords, loadedPhrases]) => {
+]).then(([loadedWords, loadedPhrases, loadedPhraseFamilies]) => {
     words = loadedWords;
     phrases = loadedPhrases;
+    indexPhraseFamilies(loadedPhraseFamilies.families);
     const availableTopics = new Set(words.flatMap(topicsFor));
     const availableParts = new Set(words.flatMap(partsOfSpeechFor));
     let stateChanged = false;
@@ -436,6 +541,12 @@ Promise.all([
     selectedPartsOfSpeech.forEach(part => {
       if (!availableParts.has(part)) {
         selectedPartsOfSpeech.delete(part);
+        stateChanged = true;
+      }
+    });
+    selectedPhraseFamilies.forEach(familyId => {
+      if (!phraseFamiliesById.has(familyId)) {
+        selectedPhraseFamilies.delete(familyId);
         stateChanged = true;
       }
     });

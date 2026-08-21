@@ -51,3 +51,7 @@ Before adding a word:
 - Display exactly three right-to-left columns: pointed Hebrew transcription, literal Hebrew translation, and natural Hebrew translation. Do not display Arabic-script text in this view.
 - Keep a compact copy button at the left edge of each phrase row; copy the transcription, literal translation, and natural translation in that order.
 - Keep the dictionary and phrases views independently searchable, and remember the selected view in the shared UI state.
+- Store manually curated word-family mappings in `phrase-families.json`, separate from the phrases and dictionary data.
+- Each family has a stable `id`, pointed Hebrew `label`, Hebrew `meaning`, and `matches` containing a stable `phraseId` plus the exact pointed Hebrew `words` occurring in that phrase.
+- A phrase can belong to multiple families. Render mapped words as clickable links and combine selected families with AND filtering.
+- Run `node scripts/validate-phrase-families.js` after changing phrase records or family mappings.

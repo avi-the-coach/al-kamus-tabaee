@@ -43,3 +43,10 @@ Before adding a word:
 
 - Persist user interface choices in `localStorage` so refreshes preserve continuity.
 - Keep persisted UI state in the versioned `al-kamus-ui-state` object so more preferences can be added safely later.
+
+## Thinking-in-Arabic practice
+
+- The phrases view is a separate sub-application, not part of the dictionary or `words.json`.
+- Store its records in `phrases.json`, with stable `p-NNN` IDs and the fields `transcription`, `literal`, and `meaning`.
+- Display exactly three right-to-left columns: pointed Hebrew transcription, literal Hebrew translation, and natural Hebrew translation. Do not display Arabic-script text in this view.
+- Keep the dictionary and phrases views independently searchable, and remember the selected view in the shared UI state.

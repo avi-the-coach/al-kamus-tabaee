@@ -5,15 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>המילון האישי שלי בערבית</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="phrases.css?v=1">
 </head>
 <body>
   <main class="wrap">
     <header>
-      <h1>המילים שלי בערבית</h1>
+      <h1 id="pageTitle">המילון שלי</h1>
+      <nav class="app-navigation" aria-label="ניווט ראשי">
+        <button class="app-navigation-item active" id="dictionaryViewButton" type="button" data-view="dictionary" aria-pressed="true">מילון</button>
+        <button class="app-navigation-item" id="phrasesViewButton" type="button" data-view="phrases" aria-pressed="false">משפטים</button>
+      </nav>
       <span class="status" id="status">טוען…</span>
     </header>
     <section class="grid" id="grid"></section>
+    <section class="phrase-view" id="phraseView" hidden>
+      <table class="phrase-table">
+        <thead><tr><th scope="col">תעתיק</th><th scope="col">מילולית</th><th scope="col">בעברית</th></tr></thead>
+        <tbody id="phraseRows"></tbody>
+      </table>
+    </section>
   </main>
 
   <aside class="control-panel" aria-label="חיפוש, סינון ומיון מילים">
@@ -41,6 +52,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>

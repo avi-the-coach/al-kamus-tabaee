@@ -1,4 +1,5 @@
 let words = [];
+let phrases = [];
 const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
 const UI_STATE_VERSION = 2;
 const selectedTopics = new Set();
@@ -10,6 +11,8 @@ const SORT_OPTIONS = {
 };
 let sortMode = 'transcription';
 let expandedWordId = null;
+let activeView = 'dictionary';
+const searchQueries = { dictionary: '', phrases: '' };
 const $ = selector => document.querySelector(selector);
 
 function topicsFor(word) {
@@ -55,6 +58,9 @@ function loadUiState() {
     if (typeof savedState.sortMode === 'string' && SORT_OPTIONS[savedState.sortMode]) {
       sortMode = savedState.sortMode;
     }
+    if (savedState.activeView === 'dictionary' || savedState.activeView === 'phrases') {
+      activeView = savedState.activeView;
+    }
   } catch {
     // Keep the app usable if storage is unavailable or contains invalid data.
   }
@@ -66,7 +72,8 @@ function saveUiState() {
       version: UI_STATE_VERSION,
       selectedTopics: [...selectedTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech],
-      sortMode
+      sortMode,
+      activeView
     }));
   } catch {
     // Keep the app usable if storage is unavailable.
@@ -256,6 +263,11 @@ async function copyWord(button, word) {
 }
 
 function render() {
+  if (activeView === 'phrases') {
+    renderPhrases();
+    return;
+  }
+
   const q = $('#search').value.trim().toLowerCase();
   const shown = sortWords(words.filter(word =>
     (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
@@ -318,6 +330,53 @@ function render() {
   renderSortOptions();
 }
 
+function renderPhrases() {
+  const query = $('#search').value.trim().toLowerCase();
+  const shown = phrases.filter(phrase =>
+    !query || [phrase.transcription, phrase.literal, phrase.meaning]
+      .some(value => value.toLowerCase().includes(query))
+  );
+
+  $('#status').textContent = `${shown.length} משפטים`;
+  $('#phraseRows').innerHTML = shown.map(phrase => `<tr>
+    <td class="phrase-transcription">${escapeHtml(phrase.transcription)}</td>
+    <td class="phrase-literal">${escapeHtml(phrase.literal)}</td>
+    <td class="phrase-meaning">${escapeHtml(phrase.meaning)}</td>
+  </tr>`).join('') || '<tr><td class="phrase-empty" colspan="3">לא נמצאו משפטים.</td></tr>';
+}
+
+function setActiveView(view) {
+  if (view !== 'dictionary' && view !== 'phrases') return;
+
+  searchQueries[activeView] = $('#search').value;
+  activeView = view;
+  const showingPhrases = activeView === 'phrases';
+
+  $('#search').value = searchQueries[activeView];
+  $('#search').placeholder = showingPhrases ? 'חיפוש משפטים…' : 'חיפוש…';
+  $('#search').setAttribute('aria-label', showingPhrases ? 'חיפוש משפטים' : 'חיפוש מילים');
+  $('#pageTitle').textContent = showingPhrases ? 'חושבים בערבית' : 'המילון שלי';
+  $('#grid').hidden = showingPhrases;
+  $('#phraseView').hidden = !showingPhrases;
+  $('.control-panel').classList.toggle('phrase-controls', showingPhrases);
+  $('#filterToggle').hidden = showingPhrases;
+  $('#filterPanel').hidden = true;
+  $('#filterToggle').setAttribute('aria-expanded', 'false');
+
+  document.querySelectorAll('[data-view]').forEach(button => {
+    const active = button.dataset.view === activeView;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+
+  saveUiState();
+  render();
+}
+
+document.querySelectorAll('[data-view]').forEach(button => {
+  button.onclick = () => setActiveView(button.dataset.view);
+});
+
 $('#filterToggle').onclick = () => {
   const panel = $('#filterPanel');
   const opening = panel.hidden;
@@ -335,10 +394,18 @@ $('#clearFilters').onclick = () => {
 
 $('#search').oninput = render;
 
-fetch('words.json?v=21')
-  .then(response => { if (!response.ok) throw new Error('Could not load words'); return response.json(); })
-  .then(data => {
-    words = data;
+Promise.all([
+  fetch('words.json?v=21').then(response => {
+    if (!response.ok) throw new Error('Could not load words');
+    return response.json();
+  }),
+  fetch('phrases.json?v=1').then(response => {
+    if (!response.ok) throw new Error('Could not load phrases');
+    return response.json();
+  })
+]).then(([loadedWords, loadedPhrases]) => {
+    words = loadedWords;
+    phrases = loadedPhrases;
     const availableTopics = new Set(words.flatMap(topicsFor));
     const availableParts = new Set(words.flatMap(partsOfSpeechFor));
     let stateChanged = false;
@@ -355,6 +422,6 @@ fetch('words.json?v=21')
       }
     });
     if (stateChanged) saveUiState();
-    render();
+    setActiveView(activeView);
   })
-  .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את המילים.'; });
+  .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את הנתונים.'; });

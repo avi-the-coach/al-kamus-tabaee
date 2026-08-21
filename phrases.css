@@ -1,0 +1,153 @@
+header {
+  gap: 8px;
+}
+
+header h1 {
+  white-space: nowrap;
+}
+
+.app-navigation {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.app-navigation-item {
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #596274;
+  font: 12px Arial, "Noto Sans Hebrew", sans-serif;
+  cursor: pointer;
+}
+
+.app-navigation-item.active {
+  background: #e6f3ee;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.status {
+  margin-right: auto;
+  white-space: nowrap;
+}
+
+.phrase-view[hidden] {
+  display: none;
+}
+
+.phrase-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.phrase-table th,
+.phrase-table td {
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.phrase-table thead th {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 5;
+  background: #f4f8f6;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.phrase-table th:nth-child(1),
+.phrase-table td:nth-child(1) {
+  width: 39%;
+}
+
+.phrase-table th:nth-child(2),
+.phrase-table td:nth-child(2) {
+  width: 31%;
+}
+
+.phrase-table th:nth-child(3),
+.phrase-table td:nth-child(3) {
+  width: 30%;
+}
+
+.phrase-transcription {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.phrase-literal,
+.phrase-meaning {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.phrase-literal {
+  color: #596274;
+}
+
+.phrase-meaning {
+  color: #176b55;
+}
+
+.phrase-empty {
+  color: var(--muted);
+  text-align: center !important;
+}
+
+.phrase-controls .control-panel-inner {
+  grid-template-columns: 1fr;
+}
+
+@media (width <= 520px) {
+  header {
+    gap: 5px;
+  }
+
+  header h1 {
+    font-size: 15px;
+  }
+
+  .app-navigation {
+    gap: 1px;
+    padding: 2px;
+  }
+
+  .app-navigation-item {
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .status {
+    font-size: 11px;
+  }
+
+  .phrase-table th,
+  .phrase-table td {
+    padding: 8px 4px;
+  }
+
+  .phrase-table thead th {
+    font-size: 11px;
+  }
+
+  .phrase-transcription {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .phrase-literal,
+  .phrase-meaning {
+    font-size: 11px;
+  }
+}

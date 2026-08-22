@@ -60,7 +60,7 @@ Before adding a word:
 - Store its records in `phrases.json`, with stable `p-NNN` IDs and the fields `transcription`, `literal`, and `meaning`.
 - Display exactly three right-to-left columns: pointed Hebrew transcription, literal Hebrew translation, and natural Hebrew translation. Do not display Arabic-script text in this view.
 - The `literal` field intentionally preserves the Arabic construction and word order as closely as understandable Hebrew permits; `meaning` is the idiomatic, natural Hebrew equivalent.
-- Keep a compact copy button at the left edge of each phrase row; copy the transcription, literal translation, and natural translation in that order.
+- Keep a compact copy button at the left edge of each phrase row. Copy `[AL-KAMUS phrase_id=p-NNN]` followed by the transcription, literal translation, and natural translation, in that order; dictionary copy buttons already use `[AL-KAMUS word_id=w-NNN]`.
 - Keep the dictionary and phrases views independently searchable, and remember the selected view in the shared UI state.
 - Keep the phrases control panel's `סדר` section: `Shuffle` randomly reorders all phrases and persists their IDs; `Reset` restores and persists ascending phrase-ID order. Search and family filters must preserve whichever phrase order is active.
 - Store manually curated word-family mappings in `phrase-families.json`, separate from the phrases and dictionary data.

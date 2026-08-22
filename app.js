@@ -281,7 +281,7 @@ function copyWord(button, word) {
 }
 
 function copyPhrase(button, phrase) {
-  const text = `${phrase.transcription} | ${phrase.literal} | ${phrase.meaning}`;
+  const text = `[AL-KAMUS phrase_id=${phrase.id}] ${phrase.transcription} | ${phrase.literal} | ${phrase.meaning}`;
   return copyText(button, text, 'העתקת המשפט והתרגומים');
 }
 
@@ -560,15 +560,15 @@ $('#clearFilters').onclick = () => {
 $('#search').oninput = render;
 
 Promise.all([
-  fetch('words.json?v=22').then(response => {
+  fetch('words.json?v=23').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),
-  fetch('phrases.json?v=1').then(response => {
+  fetch('phrases.json?v=2').then(response => {
     if (!response.ok) throw new Error('Could not load phrases');
     return response.json();
   }),
-  fetch('phrase-families.json?v=1').then(response => {
+  fetch('phrase-families.json?v=2').then(response => {
     if (!response.ok) throw new Error('Could not load phrase families');
     return response.json();
   })

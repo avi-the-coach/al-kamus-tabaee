@@ -16,6 +16,7 @@ const SORT_OPTIONS = {
 let sortMode = 'transcription';
 let expandedWordId = null;
 let activeView = 'dictionary';
+let savedPhraseOrder = [];
 const searchQueries = { dictionary: '', phrases: '' };
 const $ = selector => document.querySelector(selector);
 
@@ -64,6 +65,9 @@ function loadUiState() {
         .filter(familyId => typeof familyId === 'string')
         .forEach(familyId => selectedPhraseFamilies.add(familyId));
     }
+    if (Array.isArray(savedState.phraseOrder)) {
+      savedPhraseOrder = savedState.phraseOrder.filter(phraseId => typeof phraseId === 'string');
+    }
     if (typeof savedState.sortMode === 'string' && SORT_OPTIONS[savedState.sortMode]) {
       sortMode = savedState.sortMode;
     }
@@ -82,6 +86,7 @@ function saveUiState() {
       selectedTopics: [...selectedTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech],
       selectedPhraseFamilies: [...selectedPhraseFamilies],
+      phraseOrder: savedPhraseOrder,
       sortMode,
       activeView
     }));
@@ -278,6 +283,45 @@ function copyWord(button, word) {
 function copyPhrase(button, phrase) {
   const text = `${phrase.transcription} | ${phrase.literal} | ${phrase.meaning}`;
   return copyText(button, text, 'העתקת המשפט והתרגומים');
+}
+
+function reconcilePhraseOrder() {
+  const phrasesById = new Map(phrases.map(phrase => [phrase.id, phrase]));
+  const orderedPhrases = [];
+
+  savedPhraseOrder.forEach(phraseId => {
+    const phrase = phrasesById.get(phraseId);
+    if (!phrase) return;
+    orderedPhrases.push(phrase);
+    phrasesById.delete(phraseId);
+  });
+
+  const newPhrases = [...phrasesById.values()].sort((left, right) =>
+    String(left.id).localeCompare(String(right.id), undefined, { numeric: true })
+  );
+  phrases = [...orderedPhrases, ...newPhrases];
+  const nextOrder = phrases.map(phrase => phrase.id);
+  const changed = nextOrder.length !== savedPhraseOrder.length ||
+    nextOrder.some((phraseId, index) => phraseId !== savedPhraseOrder[index]);
+  savedPhraseOrder = nextOrder;
+  return changed;
+}
+
+function shufflePhrases() {
+  for (let index = phrases.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [phrases[index], phrases[randomIndex]] = [phrases[randomIndex], phrases[index]];
+  }
+  savedPhraseOrder = phrases.map(phrase => phrase.id);
+  saveUiState();
+  renderPhrases();
+}
+
+function resetPhraseOrder() {
+  savedPhraseOrder = [];
+  reconcilePhraseOrder();
+  saveUiState();
+  renderPhrases();
 }
 
 function indexPhraseFamilies(families) {
@@ -503,6 +547,9 @@ $('#clearPhraseFamilies').onclick = () => {
   renderPhrases();
 };
 
+$('#shufflePhrases').onclick = shufflePhrases;
+$('#resetPhraseOrder').onclick = resetPhraseOrder;
+
 $('#clearFilters').onclick = () => {
   selectedTopics.clear();
   selectedPartsOfSpeech.clear();
@@ -531,7 +578,7 @@ Promise.all([
     indexPhraseFamilies(loadedPhraseFamilies.families);
     const availableTopics = new Set(words.flatMap(topicsFor));
     const availableParts = new Set(words.flatMap(partsOfSpeechFor));
-    let stateChanged = false;
+    let stateChanged = reconcilePhraseOrder();
     selectedTopics.forEach(topic => {
       if (!availableTopics.has(topic)) {
         selectedTopics.delete(topic);

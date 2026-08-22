@@ -44,6 +44,7 @@ Before adding a word:
 
 - Persist user interface choices in `localStorage` so refreshes preserve continuity.
 - Keep persisted UI state in the versioned `al-kamus-ui-state` object so more preferences can be added safely later.
+- Persist phrase order as the `phraseOrder` array of stable phrase IDs in that same UI-state object. When loading, keep surviving saved IDs in their stored order, ignore deleted IDs, and append previously unseen phrases sorted by ID.
 
 ## Thinking-in-Arabic practice
 
@@ -54,6 +55,7 @@ Before adding a word:
 - The `literal` field intentionally preserves the Arabic construction and word order as closely as understandable Hebrew permits; `meaning` is the idiomatic, natural Hebrew equivalent.
 - Keep a compact copy button at the left edge of each phrase row; copy the transcription, literal translation, and natural translation in that order.
 - Keep the dictionary and phrases views independently searchable, and remember the selected view in the shared UI state.
+- Keep the phrases control panel's `סדר` section: `Shuffle` randomly reorders all phrases and persists their IDs; `Reset` restores and persists ascending phrase-ID order. Search and family filters must preserve whichever phrase order is active.
 - Store manually curated word-family mappings in `phrase-families.json`, separate from the phrases and dictionary data.
 - Each family has a stable `id`, pointed Hebrew `label`, Hebrew `meaning`, and `matches` containing a stable `phraseId` plus the exact pointed Hebrew `words` occurring in that phrase.
 - A phrase can belong to multiple families. Render mapped words as clickable links and combine selected families with AND filtering.

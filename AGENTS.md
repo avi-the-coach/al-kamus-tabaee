@@ -4,6 +4,13 @@
 
 This repository contains Avi's personal Palestinian Arabic dictionary, deployed with GitHub Pages from the `main` branch.
 
+## Feature specifications
+
+- Keep evolving design documents and implementation plans in `specs/`, not in the published application.
+- `_config.yml` excludes `specs/` from the GitHub Pages build. This exclusion does not make files in a public GitHub repository private.
+- Before designing or implementing fork/upstream synchronization, layered personal data, or related migrations, read and update `specs/forkable-personal-dictionary.md`.
+- Treat open design questions in that specification as unresolved; do not implement speculative answers without Avi's direction.
+
 ## Publishing workflow
 
 - Do not leave an explicitly requested change only as a proposal. Implement it and verify that the public GitHub Pages site contains the requested result before reporting completion.

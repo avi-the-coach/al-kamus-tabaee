@@ -33,11 +33,21 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - Every conjugating verb must also include spoken active-participle forms under `participles`, using the keys `masculine`, `feminine`, and `plural`; each form contains Arabic and a pointed Hebrew transcription. Do not invent participles for non-conjugating pseudo-verbs such as `بدّي`.
 - Conjugation tables display pointed Hebrew transcription only. Imperative cells must remain empty except for `you_m`, `you_f`, and `you_pl`.
 
+### Preferred spoken-Arabic reference: Madrasa Dictionary
+
+- Use Madrasa's Hebrew-to-spoken-Arabic dictionary as a preferred reference when adding, correcting, or explaining dictionary words, phrase vocabulary, grammatical constructions, or Hebrew transcription: `https://milon.madrasafree.com/`.
+- Search directly with `https://milon.madrasafree.com/default.asp?searchString=<URL-encoded search term>`. Search terms may be Hebrew, pointed or unpointed Hebrew transcription, or Arabic; URL-encode UTF-8 query values.
+- Example: `https://milon.madrasafree.com/default.asp?searchString=%D7%91%D7%9C%D7%90%D7%A9` searches for `בלאש` and returns both exact matches and similar-sounding related entries.
+- Open the rendered search page in a real browser when a basic web reader fails to load the query URL or exposes only the empty homepage. Inspect the visible results and open the individual `/word.asp?id=<id>` entry when more detail is needed.
+- Verify the Arabic spelling, pointed Hebrew transcription, Hebrew meanings, grammatical type, gender/number, verb pattern, present/future notes, usage notes, and relevant expressions whenever the source supplies them. Compare exact matches with similar-sounding results instead of assuming that near-identical Hebrew spellings represent the same word.
+- Interpret each word in context: Madrasa distinguishes `بلاش` / `בַּלַאש` meaning "אין צורך ש, אין טעם ש, שלא" before a verb from its separate "חינם" sense, and from `بَلَّش` / `בַּלַּש`, the verb "התחיל". For `בַּלַאש תְוַגַּע רַאסַכּ`, a context-faithful literal translation is "אין צורך שתכאיב לראש שלך", not simply "בלי שתכאיב לראש שלך".
+- Madrasa is a strong reference for spoken Arabic and Hebrew learners, not an infallible source or permission to invent missing forms. Cross-check dialect, context, and forms it does not provide; preserve the project's Palestinian/Jerusalem spoken conventions and Avi's instructions when sources differ.
+
 ### New-entry checklist
 
 Before adding a word:
 
-1. Confirm the Palestinian-Jerusalem spoken form, meaning, pointed Hebrew transcription, and grammatical type. Do not infer a form from Modern Standard Arabic when a spoken form is available.
+1. Search Madrasa Dictionary when relevant and confirm the Palestinian-Jerusalem spoken form, contextual meaning, pointed Hebrew transcription, and grammatical type. Do not infer a form from Modern Standard Arabic when a spoken form is available.
 2. Allocate the next unused stable `w-NNN` ID and add a natural everyday example.
 3. If the entry is a conjugating verb, use `w-041` (`حسّ`) as the canonical complete-data reference and include all of the following:
    - `dictionaryForm`: third-person masculine singular past, in Arabic and pointed Hebrew transcription.
@@ -73,7 +83,7 @@ Before adding a word:
 ### Adding or editing practice phrases
 
 1. Edit `phrases.json`, never `words.json`, and allocate the next unused stable `p-NNN` ID. Never renumber or reuse an existing phrase ID.
-2. Supply exactly the three learning values: pointed Palestinian-Arabic Hebrew `transcription`, structure-preserving Hebrew `literal`, and natural Hebrew `meaning`.
+2. Supply exactly the three learning values: pointed Palestinian-Arabic Hebrew `transcription`, structure-preserving Hebrew `literal`, and natural Hebrew `meaning`. Use Madrasa Dictionary to verify unfamiliar vocabulary and context-dependent constructions when relevant.
 3. Check the new or edited transcription against every existing family in `phrase-families.json`. If a related word occurs, add or update its match using the phrase ID and the exact pointed word as it appears in the transcription.
 4. Preserve links to every applicable family: a phrase such as `p-012` can belong to both `hal` and `bal` simultaneously.
 5. If editing or removing a phrase, repair every affected family match; never leave a stale `phraseId` or an outdated word spelling behind.

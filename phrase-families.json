@@ -104,6 +104,25 @@
           "words": ["אִמְהִלְהוּם"]
         }
       ]
+    },
+    {
+      "id": "bein",
+      "label": "בֵּין",
+      "meaning": "בין",
+      "matches": [
+        { "phraseId": "p-053", "words": ["בֵּין"] },
+        { "phraseId": "p-054", "words": ["בֵּין"] },
+        { "phraseId": "p-055", "words": ["בֵּין"] }
+      ]
+    },
+    {
+      "id": "faraq",
+      "label": "פַרֶק",
+      "meaning": "הבדל / פער",
+      "matches": [
+        { "phraseId": "p-053", "words": ["פַרֶק"] },
+        { "phraseId": "p-054", "words": ["פַרֶק"] }
+      ]
     }
   ]
 }

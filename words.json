@@ -1176,5 +1176,23 @@
         "you_pl": "אִמְהִלוּ"
       }
     }
+  },
+  {
+    "id": "w-057",
+    "topics": [],
+    "partOfSpeech": "noun",
+    "arabic": "فرق",
+    "transcription": "פַרֶק",
+    "meaning": "הבדל / פער",
+    "example": "שוּ אִלְפַרֶק בֵּינְהוֹם? — מה ההבדל ביניהם?"
+  },
+  {
+    "id": "w-058",
+    "topics": [],
+    "partOfSpeech": "preposition",
+    "arabic": "بين",
+    "transcription": "בֵּין",
+    "meaning": "בין",
+    "example": "אִלְבֵּית בֵּין אִלְמַדְרַסֶה וּאִדֻּכַּאן — הבית בין בית הספר לחנות"
   }
 ]

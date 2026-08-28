@@ -621,7 +621,7 @@ $('#clearFilters').onclick = () => {
 $('#search').oninput = render;
 
 Promise.all([
-  fetch('words.json?v=25').then(response => {
+  fetch('words.json?v=26').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),

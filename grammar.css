@@ -1,0 +1,54 @@
+.verb-grammar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+}
+
+.verb-grammar-grid > div {
+  padding: 6px 8px;
+  border: 1px solid #dfe3e6;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.verb-grammar-grid dt {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.verb-grammar-grid dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.app-navigation-item[href] { text-decoration: none; }
+
+.grammar-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 66px 16px 40px;
+}
+
+.grammar-intro, .grammar-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+}
+
+.grammar-intro { margin-bottom: 20px; line-height: 1.55; }
+.grammar-section { margin-top: 28px; }
+.grammar-section h2 { margin-bottom: 10px; }
+.grammar-list { display: grid; gap: 9px; }
+.grammar-card h3 { margin: 0 0 6px; font-size: 17px; }
+.grammar-card p { margin: 5px 0; line-height: 1.5; color: #374151; }
+.grammar-pattern { color: var(--accent); font-weight: 700; }
+.grammar-back { color: var(--accent); text-decoration: none; font-weight: 700; }
+
+@media (width <= 520px) {
+  .verb-grammar-grid { grid-template-columns: 1fr; }
+  .app-navigation { overflow-x: auto; white-space: nowrap; }
+  .grammar-page { padding: 54px 10px 28px; }
+}

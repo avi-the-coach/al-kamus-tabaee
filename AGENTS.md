@@ -31,6 +31,9 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - For conjugating verbs, use `dictionaryForm` for the conventional dictionary headword (third-person masculine singular, past tense), with Arabic and a pointed Hebrew transcription.
 - Store complete verb paradigms under `conjugations`, using the tense keys `past`, `present`, `future`, and `imperative`, and the person keys `i`, `you_m`, `you_f`, `he`, `she`, `we`, `you_pl`, and `they`.
 - Every conjugating verb must also include spoken active-participle forms under `participles`, using the keys `masculine`, `feminine`, and `plural`; each form contains Arabic and a pointed Hebrew transcription. Do not invent participles for non-conjugating pseudo-verbs such as `بدّي`.
+- Every conjugating verb must include `root`, `verbForm`, and `weakClass`. `verbForm` contains the Arabic form number and its readable Hebrew pattern (for example `{ "number": 5, "pattern": "תַפַעַּל" }`). `weakClass` contains a stable filter ID and a Hebrew label. Show these three fields together before the dictionary form and conjugation table.
+- Classify forms and weak-root classes according to Arabic morphology, not by forcing a one-to-one mapping to Hebrew binyanim. A compound weak class may be used when more than one feature materially affects conjugation.
+- Keep the building and weak-class filters composable: selections within one dimension are OR; choosing both dimensions is AND.
 - Conjugation tables display pointed Hebrew transcription only. Imperative cells must remain empty except for `you_m`, `you_f`, and `you_pl`.
 
 ### Preferred spoken-Arabic reference: Madrasa Dictionary
@@ -50,6 +53,7 @@ Before adding a word:
 1. Search Madrasa Dictionary when relevant and confirm the Palestinian-Jerusalem spoken form, contextual meaning, pointed Hebrew transcription, and grammatical type. Do not infer a form from Modern Standard Arabic when a spoken form is available.
 2. Allocate the next unused stable `w-NNN` ID and add a natural everyday example.
 3. If the entry is a conjugating verb, use `w-041` (`حسّ`) as the canonical complete-data reference and include all of the following:
+   - `root`, `verbForm` (number and readable pattern), and `weakClass` (stable ID and label).
    - `dictionaryForm`: third-person masculine singular past, in Arabic and pointed Hebrew transcription.
    - `participles`: `masculine`, `feminine`, and `plural`, each in Arabic and pointed Hebrew transcription.
    - `conjugations.past`, `.present`, and `.future`: all eight person keys.

@@ -7,6 +7,8 @@ const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
 const UI_STATE_VERSION = 2;
 const selectedTopics = new Set();
 const selectedPartsOfSpeech = new Set();
+const selectedVerbForms = new Set();
+const selectedWeakClasses = new Set();
 const selectedPhraseFamilies = new Set();
 const SORT_OPTIONS = {
   transcription: { label: 'תעתיק', locale: 'he', field: 'transcription' },
@@ -60,6 +62,12 @@ function loadUiState() {
         .filter(part => typeof part === 'string')
         .forEach(part => selectedPartsOfSpeech.add(part));
     }
+    if (Array.isArray(savedState.selectedVerbForms)) {
+      savedState.selectedVerbForms.filter(Number.isInteger).forEach(number => selectedVerbForms.add(number));
+    }
+    if (Array.isArray(savedState.selectedWeakClasses)) {
+      savedState.selectedWeakClasses.filter(id => typeof id === 'string').forEach(id => selectedWeakClasses.add(id));
+    }
     if (Array.isArray(savedState.selectedPhraseFamilies)) {
       savedState.selectedPhraseFamilies
         .filter(familyId => typeof familyId === 'string')
@@ -85,6 +93,8 @@ function saveUiState() {
       version: UI_STATE_VERSION,
       selectedTopics: [...selectedTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech],
+      selectedVerbForms: [...selectedVerbForms],
+      selectedWeakClasses: [...selectedWeakClasses],
       selectedPhraseFamilies: [...selectedPhraseFamilies],
       phraseOrder: savedPhraseOrder,
       sortMode,
@@ -121,10 +131,43 @@ function renderTopics() {
     };
   });
 
-  const count = selectedTopics.size + selectedPartsOfSpeech.size;
+  const count = selectedTopics.size + selectedPartsOfSpeech.size + selectedVerbForms.size + selectedWeakClasses.size;
   $('#filterCount').textContent = count;
   $('#filterCount').hidden = count === 0;
   $('#filterToggle').classList.toggle('has-filter', count > 0);
+}
+
+function renderVerbGrammarFilters() {
+  const forms = [...new Map(words.filter(word => word.verbForm).map(word => [word.verbForm.number, word.verbForm])).values()]
+    .sort((left, right) => left.number - right.number);
+  $('#verbFormChips').innerHTML = forms.map(form => {
+    const active = selectedVerbForms.has(form.number);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-verb-form="${form.number}" aria-pressed="${active}">בניין ${form.number} — ${escapeHtml(form.pattern)}</button>`;
+  }).join('');
+
+  const classes = [...new Map(words.filter(word => word.weakClass).map(word => [word.weakClass.id, word.weakClass])).values()]
+    .sort((left, right) => left.label.localeCompare(right.label, 'he'));
+  $('#weakClassChips').innerHTML = classes.map(weakClass => {
+    const active = selectedWeakClasses.has(weakClass.id);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-weak-class="${escapeHtml(weakClass.id)}" aria-pressed="${active}">${escapeHtml(weakClass.label)}</button>`;
+  }).join('');
+
+  document.querySelectorAll('[data-verb-form]').forEach(button => {
+    button.onclick = () => {
+      const number = Number(button.dataset.verbForm);
+      selectedVerbForms.has(number) ? selectedVerbForms.delete(number) : selectedVerbForms.add(number);
+      saveUiState();
+      render();
+    };
+  });
+  document.querySelectorAll('[data-weak-class]').forEach(button => {
+    button.onclick = () => {
+      const id = button.dataset.weakClass;
+      selectedWeakClasses.has(id) ? selectedWeakClasses.delete(id) : selectedWeakClasses.add(id);
+      saveUiState();
+      render();
+    };
+  });
 }
 
 function renderPartsOfSpeech() {
@@ -187,6 +230,18 @@ function renderDictionaryForm(word) {
   return `<section class="detail-section dictionary-form">
     <div class="details-label">צורת מילון (הוא בעבר)</div>
     <div><strong>${escapeHtml(transcription)}</strong>${arabic ? ` <span class="dictionary-form-arabic" lang="ar">${escapeHtml(arabic)}</span>` : ''}</div>
+  </section>`;
+}
+
+function renderVerbGrammar(word) {
+  if (!word.root || !word.verbForm || !word.weakClass) return '';
+  return `<section class="detail-section verb-grammar">
+    <div class="details-label">מבנה הפועל</div>
+    <dl class="verb-grammar-grid">
+      <div><dt>שורש</dt><dd>${escapeHtml(word.root)}</dd></div>
+      <div><dt>בניין</dt><dd>${word.verbForm.number} — ${escapeHtml(word.verbForm.pattern)}</dd></div>
+      <div><dt>גזרה</dt><dd>${escapeHtml(word.weakClass.label)}</dd></div>
+    </dl>
   </section>`;
 }
 
@@ -406,14 +461,16 @@ function render() {
   const shown = sortWords(words.filter(word =>
     (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
     (selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
+    (selectedVerbForms.size === 0 || selectedVerbForms.has(word.verbForm?.number)) &&
+    (selectedWeakClasses.size === 0 || selectedWeakClasses.has(word.weakClass?.id)) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   ));
 
-  if (!shown.some(word => word.id === expandedWordId && (word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations))) expandedWordId = null;
+  if (!shown.some(word => word.id === expandedWordId && (word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm))) expandedWordId = null;
 
   $('#status').textContent = `${shown.length} מילים`;
   $('#grid').innerHTML = shown.map(word => {
-    const hasDetails = Boolean(word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations);
+    const hasDetails = Boolean(word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm);
     const expanded = hasDetails && expandedWordId === word.id;
     const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part]);
     const topicLabels = topicsFor(word);
@@ -429,6 +486,7 @@ function render() {
     ${expanded ? `<div class="word-details">
       ${word.explanation ? `<section class="detail-section"><div class="details-label">הסבר</div><div class="example">${escapeHtml(word.explanation)}</div></section>` : ''}
       ${word.example ? `<section class="detail-section"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></section>` : ''}
+      ${renderVerbGrammar(word)}
       ${renderDictionaryForm(word)}
       ${renderParticiples(word)}
       ${renderPronounForms(word)}
@@ -461,6 +519,7 @@ function render() {
 
   renderTopics();
   renderPartsOfSpeech();
+  renderVerbGrammarFilters();
   renderSortOptions();
 }
 
@@ -553,6 +612,8 @@ $('#resetPhraseOrder').onclick = resetPhraseOrder;
 $('#clearFilters').onclick = () => {
   selectedTopics.clear();
   selectedPartsOfSpeech.clear();
+  selectedVerbForms.clear();
+  selectedWeakClasses.clear();
   saveUiState();
   render();
 };
@@ -560,7 +621,7 @@ $('#clearFilters').onclick = () => {
 $('#search').oninput = render;
 
 Promise.all([
-  fetch('words.json?v=23').then(response => {
+  fetch('words.json?v=24').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),
@@ -578,6 +639,8 @@ Promise.all([
     indexPhraseFamilies(loadedPhraseFamilies.families);
     const availableTopics = new Set(words.flatMap(topicsFor));
     const availableParts = new Set(words.flatMap(partsOfSpeechFor));
+    const availableVerbForms = new Set(words.map(word => word.verbForm?.number).filter(Number.isInteger));
+    const availableWeakClasses = new Set(words.map(word => word.weakClass?.id).filter(Boolean));
     let stateChanged = reconcilePhraseOrder();
     selectedTopics.forEach(topic => {
       if (!availableTopics.has(topic)) {
@@ -588,6 +651,18 @@ Promise.all([
     selectedPartsOfSpeech.forEach(part => {
       if (!availableParts.has(part)) {
         selectedPartsOfSpeech.delete(part);
+        stateChanged = true;
+      }
+    });
+    selectedVerbForms.forEach(number => {
+      if (!availableVerbForms.has(number)) {
+        selectedVerbForms.delete(number);
+        stateChanged = true;
+      }
+    });
+    selectedWeakClasses.forEach(id => {
+      if (!availableWeakClasses.has(id)) {
+        selectedWeakClasses.delete(id);
         stateChanged = true;
       }
     });

@@ -17,6 +17,10 @@ for (const word of words) {
 
   if (word.partOfSpeech !== 'verb' || !word.conjugations) continue;
 
+  if (!word.root || !word.verbForm?.number || !word.verbForm?.pattern || !word.weakClass?.id || !word.weakClass?.label) {
+    errors.push(`${word.id}: missing root, verbForm, or weakClass metadata.`);
+  }
+
   if (!word.dictionaryForm?.arabic || !word.dictionaryForm?.transcription) {
     errors.push(`${word.id}: missing a complete dictionaryForm.`);
   }

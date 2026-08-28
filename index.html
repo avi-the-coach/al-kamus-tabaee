@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <title>המילון האישי שלי בערבית</title>
-  <link rel="stylesheet" href="style.css?v=16">
+  <link rel="stylesheet" href="style.css?v=17">
+  <link rel="stylesheet" href="grammar.css?v=1">
   <link rel="stylesheet" href="phrases.css?v=3">
 </head>
 <body>
@@ -15,6 +16,7 @@
       <nav class="app-navigation" aria-label="ניווט ראשי">
         <button class="app-navigation-item active" id="dictionaryViewButton" type="button" data-view="dictionary" aria-pressed="true">מילון</button>
         <button class="app-navigation-item" id="phrasesViewButton" type="button" data-view="phrases" aria-pressed="false">משפטים</button>
+        <a class="app-navigation-item" href="verb-grammar.html">בניינים וגזרות</a>
       </nav>
       <span class="status" id="status">טוען…</span>
     </header>
@@ -37,6 +39,14 @@
       <div class="filter-section">
         <strong>סוג מילה</strong>
         <div class="chips part-chips" id="partChips" aria-label="בחירת סוגי מילים"></div>
+      </div>
+      <div class="filter-section">
+        <strong>בניין</strong>
+        <div class="chips" id="verbFormChips" aria-label="סינון לפי בניין"></div>
+      </div>
+      <div class="filter-section">
+        <strong>גזרה</strong>
+        <div class="chips" id="weakClassChips" aria-label="סינון לפי גזרה"></div>
       </div>
       <div class="filter-section">
         <strong>מיון</strong>
@@ -66,6 +76,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=28"></script>
+  <script src="app.js?v=29"></script>
 </body>
 </html>

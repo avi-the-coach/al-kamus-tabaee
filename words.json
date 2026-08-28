@@ -325,6 +325,15 @@
     "transcription": "חַלִּיהַא",
     "meaning": "עזוב את זה / הנח לזה",
     "example": "חַלִּיהַא, מַא בִּדִּי אַחְכִּי עַנְהַא — עזוב את זה, אני לא רוצה לדבר על זה",
+    "root": "ח־ל־ו/י",
+    "verbForm": {
+      "number": 2,
+      "pattern": "פַעַּל"
+    },
+    "weakClass": {
+      "id": "final_weak",
+      "label": "ל״ו/ל״י"
+    },
     "dictionaryForm": {
       "arabic": "خلّى",
       "transcription": "חַלַּא"
@@ -425,6 +434,15 @@
     "transcription": "אִגֵ׳ית / גֵ׳ית",
     "meaning": "באתי",
     "example": "אִגֵ׳ית עַאלְוַקֶת — באתי בזמן",
+    "root": "ג׳־י־א",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "hollow_hamzated",
+      "label": "ע״י ול״המוזה"
+    },
     "dictionaryForm": {
       "arabic": "إجا",
       "transcription": "אִגַ׳א"
@@ -489,6 +507,15 @@
     "transcription": "אִסְתַנַּא",
     "meaning": "חיכה / לחכות",
     "example": "אִסְתַנַּא שְוַי — חכה רגע",
+    "root": "א־נ־י",
+    "verbForm": {
+      "number": 10,
+      "pattern": "אִסְתַפְעַל"
+    },
+    "weakClass": {
+      "id": "final_weak",
+      "label": "ל״י"
+    },
     "dictionaryForm": {
       "arabic": "استنّى",
       "transcription": "אִסְתַנַּא"
@@ -553,6 +580,15 @@
     "transcription": "חַסּ",
     "meaning": "הרגיש / להרגיש",
     "example": "אַנַא בַּחִסּ אִנּוֹ פִי אִשִי מִש מַזְבּוּט — אני מרגיש שמשהו לא בסדר",
+    "root": "ח־ס־ס",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "geminate",
+      "label": "כפולים (ע״ע)"
+    },
     "dictionaryForm": {
       "arabic": "حسّ",
       "transcription": "חַסּ"
@@ -653,6 +689,15 @@
     "transcription": "שַאף / בִּישוּף",
     "meaning": "ראה / לראות",
     "example": "שוּ בִּתְשוּף? — מה אתה רואה?",
+    "root": "ש־ו־פ",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "hollow_waw",
+      "label": "ע״ו"
+    },
     "dictionaryForm": {
       "arabic": "شاف",
       "transcription": "שַאף"
@@ -717,6 +762,15 @@
     "transcription": "פַכַּר / בְּפַכֶּר",
     "meaning": "חשב / לחשוב",
     "example": "הַאד בְּחַלִּינִי אַפַכֶּר בִּלְכּוֹן — זה גורם לי לחשוב על היקום",
+    "root": "פ־כּ־ר",
+    "verbForm": {
+      "number": 2,
+      "pattern": "פַעַּל"
+    },
+    "weakClass": {
+      "id": "sound",
+      "label": "שלמים"
+    },
     "dictionaryForm": {
       "arabic": "فكّر",
       "transcription": "פַכַּר"
@@ -808,6 +862,15 @@
     "transcription": "סַרַק / בִּיסְרֹק",
     "meaning": "גנב / לגנוב",
     "example": "סַרְקוּ אִלְחֵ'ימֶה — גנבו את האוהל",
+    "root": "ס־ר־ק",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "sound",
+      "label": "שלמים"
+    },
     "dictionaryForm": {
       "arabic": "سرق",
       "transcription": "סַרַק"
@@ -872,6 +935,15 @@
     "transcription": "כַּאן / בַּכּוּן",
     "meaning": "היה / להיות",
     "example": "אִמְבַּארֶח כֻּנְת תַעְבַּאן — אתמול הייתי עייף",
+    "root": "כּ־ו־נ",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "hollow_waw",
+      "label": "ע״ו"
+    },
     "dictionaryForm": {
       "arabic": "كان",
       "transcription": "כַּאן"
@@ -936,6 +1008,15 @@
     "transcription": "וִקֶע / בּוּקַע",
     "meaning": "נפל / ליפול",
     "example": "וִקֶע מִן בַּאלִי — נפל לי מהראש / שכחתי",
+    "root": "ו־ק־ע",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "initial_waw",
+      "label": "פ״ו"
+    },
     "dictionaryForm": {
       "arabic": "وقع",
       "transcription": "וִקֶע"
@@ -1031,6 +1112,15 @@
     "meaning": "נתן ארכה / לתת זמן נוסף",
     "example": "אִמְהִלְנִי שְוַיּ — תן לי עוד קצת זמן",
     "explanation": "פועל מאותו שורש מ־ה־ל. משמש כשנותנים לאדם שהות, דוחים מועד או מאפשרים לו להתארגן.",
+    "root": "מ־ה־ל",
+    "verbForm": {
+      "number": 4,
+      "pattern": "אַפְעַל"
+    },
+    "weakClass": {
+      "id": "sound",
+      "label": "שלמים"
+    },
     "dictionaryForm": {
       "arabic": "أمهل",
       "transcription": "אַמְהַל"

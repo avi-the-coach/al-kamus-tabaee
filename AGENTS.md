@@ -46,11 +46,23 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - Interpret each word in context: Madrasa distinguishes `بلاش` / `בַּלַאש` meaning "אין צורך ש, אין טעם ש, שלא" before a verb from its separate "חינם" sense, and from `بَلَّش` / `בַּלַּש`, the verb "התחיל". For `בַּלַאש תְוַגַּע רַאסַכּ`, a context-faithful literal translation is "אין צורך שתכאיב לראש שלך", not simply "בלי שתכאיב לראש שלך".
 - Madrasa is a strong reference for spoken Arabic and Hebrew learners, not an infallible source or permission to invent missing forms. Cross-check dialect, context, and forms it does not provide; preserve the project's Palestinian/Jerusalem spoken conventions and Avi's instructions when sources differ.
 
+### Palestinian verb control source: Spoken Arabic API
+
+- Use the verb application at `https://roadtorecovery.org.il/Spokenarabic/` and its read-only API as an additional control, verification, and cross-checking source for Palestinian spoken verbs. It complements Madrasa; neither source overrides context, project conventions, or explicit user corrections by itself.
+- The API base URL is `https://amir-325409.oa.r.appspot.com/`. Its responses are JSON and currently allow cross-origin GET requests. Treat it as an undocumented external service whose paths and schema may change.
+- Call `GET /all` first. Its `roots.taatik` array contains the exact searchable root-plus-building identifiers, and `roots.hebrew` contains Hebrew meanings. Do not guess a detail endpoint from a bare root when several buildings or meanings may exist.
+- Fetch a selected verb with `GET /hataiotv2/<URL-encoded identifier>`. Example: URL-encoding `בוס פעל 1` returns the Form-I verb meaning "to kiss"; requesting only `בוס` returns `404 root not found`.
+- Use the detail response to verify `root.shoresh`, `root.shoreshArabic`, `root.mashmaut`, `root.binian`, `root.gizra`, `root.peula`, and all entries in `root.hataiot`. The conjugation rows can include affirmative and negative past, present, future, imperative, active participle, and passive participle forms.
+- Map the API's eight-person order deliberately to this project's keys: `i`, `you_m`, `you_f`, `he`, `she`, `we`, `you_pl`, and `they`. Preserve this project's pointed-Hebrew transcription conventions when the source uses a different but equivalent niqqud style.
+- Inspect `sentences` for usage examples and `audio` only as supporting metadata. Audio may intentionally point to a different verb with the same building and pattern, so never label borrowed pattern audio as the requested verb's own recording without verification.
+- Do not make the static application depend on this API at runtime unless Avi explicitly requests that architecture. Prefer agent-side lookup, comparison, mapping into `words.json`, validation, and repository persistence so the dictionary remains available if the external service changes or is offline.
+- When Madrasa, this API, and an existing project entry disagree, report the exact disagreement and resolve it using Palestinian/Jerusalem usage and context; do not silently replace an existing paradigm.
+
 ### New-entry checklist
 
 Before adding a word:
 
-1. Search Madrasa Dictionary when relevant and confirm the Palestinian-Jerusalem spoken form, contextual meaning, pointed Hebrew transcription, and grammatical type. Do not infer a form from Modern Standard Arabic when a spoken form is available.
+1. Search Madrasa Dictionary when relevant and confirm the Palestinian-Jerusalem spoken form, contextual meaning, pointed Hebrew transcription, and grammatical type. For conjugating verbs, also check the Spoken Arabic API when the verb is present there. Do not infer a form from Modern Standard Arabic when a spoken form is available.
 2. Allocate the next unused stable `w-NNN` ID and add a natural everyday example.
 3. If the entry is a conjugating verb, use `w-041` (`حسّ`) as the canonical complete-data reference and include all of the following:
    - `root`, `verbForm` (number and readable pattern), and `weakClass` (stable ID and label).

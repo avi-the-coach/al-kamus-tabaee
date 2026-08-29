@@ -12,9 +12,10 @@
 <body>
   <main class="wrap">
     <header>
-      <h1 id="pageTitle">המילון שלי</h1>
+      <h1 id="pageTitle">המילים שלי</h1>
       <nav class="app-navigation" aria-label="ניווט ראשי">
-        <button class="app-navigation-item active" id="dictionaryViewButton" type="button" data-view="dictionary" aria-pressed="true">מילון</button>
+        <button class="app-navigation-item active" id="wordsViewButton" type="button" data-view="words" aria-pressed="true">מילים</button>
+        <button class="app-navigation-item" id="verbsViewButton" type="button" data-view="verbs" aria-pressed="false">פעלים</button>
         <button class="app-navigation-item" id="phrasesViewButton" type="button" data-view="phrases" aria-pressed="false">משפטים</button>
         <a class="app-navigation-item" href="verb-grammar.html">בניינים וגזרות</a>
       </nav>
@@ -30,16 +31,27 @@
   </main>
 
   <aside class="control-panel" aria-label="חיפוש, סינון ומיון מילים">
-    <div class="category-panel" id="filterPanel" hidden>
+    <div class="category-panel" id="wordFilterPanel" hidden>
       <div class="category-panel-head">
         <strong>נושאים</strong>
-        <button class="clear" id="clearFilters" type="button">נקה הכול</button>
+        <button class="clear" id="clearWordFilters" type="button">נקה הכול</button>
       </div>
-      <nav class="chips" id="topicChips" aria-label="בחירת נושאים"></nav>
+      <nav class="chips" id="wordTopicChips" aria-label="בחירת נושאים למילים"></nav>
       <div class="filter-section">
         <strong>סוג מילה</strong>
         <div class="chips part-chips" id="partChips" aria-label="בחירת סוגי מילים"></div>
       </div>
+      <div class="filter-section">
+        <strong>מיון</strong>
+        <div class="chips" id="wordSortChips" aria-label="בחירת סדר המילים"></div>
+      </div>
+    </div>
+    <div class="category-panel" id="verbFilterPanel" hidden>
+      <div class="category-panel-head">
+        <strong>נושאים</strong>
+        <button class="clear" id="clearVerbFilters" type="button">נקה הכול</button>
+      </div>
+      <nav class="chips" id="verbTopicChips" aria-label="בחירת נושאים לפעלים"></nav>
       <div class="filter-section">
         <strong>בניין</strong>
         <div class="chips" id="verbFormChips" aria-label="סינון לפי בניין"></div>
@@ -50,7 +62,7 @@
       </div>
       <div class="filter-section">
         <strong>מיון</strong>
-        <div class="chips" id="sortChips" aria-label="בחירת סדר המילים"></div>
+        <div class="chips" id="verbSortChips" aria-label="בחירת סדר הפעלים"></div>
       </div>
     </div>
     <div class="category-panel phrase-family-panel" id="phraseFilterPanel" hidden>
@@ -68,7 +80,7 @@
       </div>
     </div>
     <div class="control-panel-inner">
-      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel" aria-label="פתיחת סינון ומיון" title="סינון ומיון">
+      <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="wordFilterPanel" aria-label="פתיחת סינון ומיון" title="סינון ומיון">
         <span aria-hidden="true">☷</span>
         <span class="filter-count" id="filterCount" hidden></span>
       </button>
@@ -76,6 +88,6 @@
     </div>
   </aside>
 
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>

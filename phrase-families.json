@@ -123,6 +123,17 @@
         { "phraseId": "p-053", "words": ["פַרֶק"] },
         { "phraseId": "p-054", "words": ["פַרֶק"] }
       ]
+    },
+    {
+      "id": "bus",
+      "label": "בּוּס",
+      "meaning": "נשיקה / לנשק",
+      "matches": [
+        { "phraseId": "p-056", "words": ["בַּאס"] },
+        { "phraseId": "p-057", "words": ["בּוּסְנִי"] },
+        { "phraseId": "p-058", "words": ["בּוֹסֶה"] },
+        { "phraseId": "p-059", "words": ["בְּתְבּוּס"] }
+      ]
     }
   ]
 }

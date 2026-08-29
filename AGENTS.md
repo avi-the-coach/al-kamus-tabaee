@@ -65,11 +65,13 @@ Before adding a word:
 
 - Persist user interface choices in `localStorage` so refreshes preserve continuity.
 - Keep persisted UI state in the versioned `al-kamus-ui-state` object so more preferences can be added safely later.
+- Keep the three primary application views separate: `words` shows non-verbs, `verbs` shows entries classified as verbs, and `phrases` shows sentence practice. Search queries and relevant filter choices must persist independently for each view.
+- The words control panel contains word topics, non-verb parts of speech, and word sorting. The verbs control panel contains verb topics, building, weak-root class, and verb sorting. Do not expose verb-only controls in the words view.
 - Persist phrase order as the `phraseOrder` array of stable phrase IDs in that same UI-state object. When loading, keep surviving saved IDs in their stored order, ignore deleted IDs, and append previously unseen phrases sorted by ID.
 
 ## Thinking-in-Arabic practice
 
-- Terminology is strict: **dictionary / מילון** means the vocabulary list only; **phrases / משפטים** means the separate sentence-practice sub-application. A request to update one must not implicitly change the other.
+- Terminology is strict: **words / מילים** means non-verb vocabulary, **verbs / פעלים** means verb entries with their grammatical details, and **phrases / משפטים** means the separate sentence-practice sub-application. All entries remain stored together in `words.json`, but the UI views and controls are separate.
 - The phrases view is a separate sub-application, not part of the dictionary or `words.json`.
 - Store its records in `phrases.json`, with stable `p-NNN` IDs and the fields `transcription`, `literal`, and `meaning`.
 - Display exactly three right-to-left columns: pointed Hebrew transcription, literal Hebrew translation, and natural Hebrew translation. Do not display Arabic-script text in this view.

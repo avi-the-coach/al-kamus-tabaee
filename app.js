@@ -4,8 +4,9 @@ let phraseFamilies = [];
 const phraseFamiliesById = new Map();
 const phraseFamilyMatchesByPhrase = new Map();
 const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
-const UI_STATE_VERSION = 2;
-const selectedTopics = new Set();
+const UI_STATE_VERSION = 3;
+const selectedWordTopics = new Set();
+const selectedVerbTopics = new Set();
 const selectedPartsOfSpeech = new Set();
 const selectedVerbForms = new Set();
 const selectedWeakClasses = new Set();
@@ -15,11 +16,11 @@ const SORT_OPTIONS = {
   meaning: { label: 'עברית', locale: 'he', field: 'meaning' },
   arabic: { label: 'ערבית', locale: 'ar', field: 'arabic' }
 };
-let sortMode = 'transcription';
+const sortModes = { words: 'transcription', verbs: 'transcription' };
 let expandedWordId = null;
-let activeView = 'dictionary';
+let activeView = 'words';
 let savedPhraseOrder = [];
-const searchQueries = { dictionary: '', phrases: '' };
+const searchQueries = { words: '', verbs: '', phrases: '' };
 const $ = selector => document.querySelector(selector);
 
 function topicsFor(word) {
@@ -52,10 +53,15 @@ function loadUiState() {
     const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
     if (!savedState || savedState.version !== UI_STATE_VERSION) return;
 
-    if (Array.isArray(savedState.selectedTopics)) {
-      savedState.selectedTopics
+    if (Array.isArray(savedState.selectedWordTopics)) {
+      savedState.selectedWordTopics
         .filter(topic => typeof topic === 'string')
-        .forEach(topic => selectedTopics.add(topic));
+        .forEach(topic => selectedWordTopics.add(topic));
+    }
+    if (Array.isArray(savedState.selectedVerbTopics)) {
+      savedState.selectedVerbTopics
+        .filter(topic => typeof topic === 'string')
+        .forEach(topic => selectedVerbTopics.add(topic));
     }
     if (Array.isArray(savedState.selectedPartsOfSpeech)) {
       savedState.selectedPartsOfSpeech
@@ -76,10 +82,12 @@ function loadUiState() {
     if (Array.isArray(savedState.phraseOrder)) {
       savedPhraseOrder = savedState.phraseOrder.filter(phraseId => typeof phraseId === 'string');
     }
-    if (typeof savedState.sortMode === 'string' && SORT_OPTIONS[savedState.sortMode]) {
-      sortMode = savedState.sortMode;
+    if (savedState.sortModes && typeof savedState.sortModes === 'object') {
+      for (const view of ['words', 'verbs']) {
+        if (SORT_OPTIONS[savedState.sortModes[view]]) sortModes[view] = savedState.sortModes[view];
+      }
     }
-    if (savedState.activeView === 'dictionary' || savedState.activeView === 'phrases') {
+    if (['words', 'verbs', 'phrases'].includes(savedState.activeView)) {
       activeView = savedState.activeView;
     }
   } catch {
@@ -91,13 +99,14 @@ function saveUiState() {
   try {
     localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({
       version: UI_STATE_VERSION,
-      selectedTopics: [...selectedTopics],
+      selectedWordTopics: [...selectedWordTopics],
+      selectedVerbTopics: [...selectedVerbTopics],
       selectedPartsOfSpeech: [...selectedPartsOfSpeech],
       selectedVerbForms: [...selectedVerbForms],
       selectedWeakClasses: [...selectedWeakClasses],
       selectedPhraseFamilies: [...selectedPhraseFamilies],
       phraseOrder: savedPhraseOrder,
-      sortMode,
+      sortModes,
       activeView
     }));
   } catch {
@@ -113,39 +122,32 @@ function escapeHtml(value = '') {
   })[character]);
 }
 
-function renderTopics() {
-  const topics = [...new Set(words.flatMap(topicsFor))];
-  $('#topicChips').innerHTML = topics.map(topic => {
-    const active = selectedTopics.has(topic);
+function renderTopics(sourceWords, selectedSet, containerSelector) {
+  const topics = [...new Set(sourceWords.flatMap(topicsFor))];
+  $(containerSelector).innerHTML = topics.map(topic => {
+    const active = selectedSet.has(topic);
     return `<button class="chip ${active ? 'active' : ''}" type="button" data-topic="${escapeHtml(topic)}" aria-pressed="${active}">${escapeHtml(topic)}</button>`;
   }).join('');
 
-  // Topic chips are rebuilt on every render. Limit this handler to the topic
-  // container so it does not overwrite the part-of-speech handlers.
-  document.querySelectorAll('#topicChips .chip').forEach(button => {
+  document.querySelectorAll(`${containerSelector} .chip`).forEach(button => {
     button.onclick = () => {
       const topic = button.dataset.topic;
-      selectedTopics.has(topic) ? selectedTopics.delete(topic) : selectedTopics.add(topic);
+      selectedSet.has(topic) ? selectedSet.delete(topic) : selectedSet.add(topic);
       saveUiState();
       render();
     };
   });
-
-  const count = selectedTopics.size + selectedPartsOfSpeech.size + selectedVerbForms.size + selectedWeakClasses.size;
-  $('#filterCount').textContent = count;
-  $('#filterCount').hidden = count === 0;
-  $('#filterToggle').classList.toggle('has-filter', count > 0);
 }
 
-function renderVerbGrammarFilters() {
-  const forms = [...new Map(words.filter(word => word.verbForm).map(word => [word.verbForm.number, word.verbForm])).values()]
+function renderVerbGrammarFilters(verbWords) {
+  const forms = [...new Map(verbWords.filter(word => word.verbForm).map(word => [word.verbForm.number, word.verbForm])).values()]
     .sort((left, right) => left.number - right.number);
   $('#verbFormChips').innerHTML = forms.map(form => {
     const active = selectedVerbForms.has(form.number);
     return `<button class="chip ${active ? 'active' : ''}" type="button" data-verb-form="${form.number}" aria-pressed="${active}">בניין ${form.number} — ${escapeHtml(form.pattern)}</button>`;
   }).join('');
 
-  const classes = [...new Map(words.filter(word => word.weakClass).map(word => [word.weakClass.id, word.weakClass])).values()]
+  const classes = [...new Map(verbWords.filter(word => word.weakClass).map(word => [word.weakClass.id, word.weakClass])).values()]
     .sort((left, right) => left.label.localeCompare(right.label, 'he'));
   $('#weakClassChips').innerHTML = classes.map(weakClass => {
     const active = selectedWeakClasses.has(weakClass.id);
@@ -170,9 +172,9 @@ function renderVerbGrammarFilters() {
   });
 }
 
-function renderPartsOfSpeech() {
+function renderPartsOfSpeech(wordEntries) {
   const availableParts = Object.keys(PART_OF_SPEECH_LABELS)
-    .filter(part => words.some(word => partsOfSpeechFor(word).includes(part)));
+    .filter(part => part !== 'verb' && wordEntries.some(word => partsOfSpeechFor(word).includes(part)));
   $('#partChips').innerHTML = availableParts.map(part => {
       const active = selectedPartsOfSpeech.has(part);
       return `<button class="chip ${active ? 'active' : ''}" type="button" data-part-of-speech="${escapeHtml(part)}" aria-pressed="${active}">${escapeHtml(PART_OF_SPEECH_LABELS[part] ?? part)}</button>`;
@@ -188,23 +190,23 @@ function renderPartsOfSpeech() {
   });
 }
 
-function renderSortOptions() {
-  $('#sortChips').innerHTML = Object.entries(SORT_OPTIONS).map(([mode, option]) => {
-    const active = sortMode === mode;
+function renderSortOptions(containerSelector, view) {
+  $(containerSelector).innerHTML = Object.entries(SORT_OPTIONS).map(([mode, option]) => {
+    const active = sortModes[view] === mode;
     return `<button class="chip ${active ? 'active' : ''}" type="button" data-sort-mode="${mode}" aria-pressed="${active}">${option.label}</button>`;
   }).join('');
 
-  document.querySelectorAll('#sortChips [data-sort-mode]').forEach(button => {
+  document.querySelectorAll(`${containerSelector} [data-sort-mode]`).forEach(button => {
     button.onclick = () => {
-      sortMode = button.dataset.sortMode;
+      sortModes[view] = button.dataset.sortMode;
       saveUiState();
       render();
     };
   });
 }
 
-function sortWords(items) {
-  const option = SORT_OPTIONS[sortMode];
+function sortWords(items, view) {
+  const option = SORT_OPTIONS[sortModes[view]];
   const collator = new Intl.Collator(option.locale, { sensitivity: 'base', numeric: true });
   return [...items].sort((a, b) =>
     collator.compare(a[option.field] ?? '', b[option.field] ?? '') ||
@@ -456,19 +458,25 @@ function render() {
     renderPhrases();
     return;
   }
+  renderDictionaryView(activeView);
+}
 
+function renderDictionaryView(view) {
+  const showingVerbs = view === 'verbs';
+  const sourceWords = words.filter(word => partsOfSpeechFor(word).includes('verb') === showingVerbs);
+  const selectedTopics = showingVerbs ? selectedVerbTopics : selectedWordTopics;
   const q = $('#search').value.trim().toLowerCase();
-  const shown = sortWords(words.filter(word =>
+  const shown = sortWords(sourceWords.filter(word =>
     (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
-    (selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
-    (selectedVerbForms.size === 0 || selectedVerbForms.has(word.verbForm?.number)) &&
-    (selectedWeakClasses.size === 0 || selectedWeakClasses.has(word.weakClass?.id)) &&
+    (showingVerbs || selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
+    (!showingVerbs || selectedVerbForms.size === 0 || selectedVerbForms.has(word.verbForm?.number)) &&
+    (!showingVerbs || selectedWeakClasses.size === 0 || selectedWeakClasses.has(word.weakClass?.id)) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
-  ));
+  ), view);
 
   if (!shown.some(word => word.id === expandedWordId && (word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm))) expandedWordId = null;
 
-  $('#status').textContent = `${shown.length} מילים`;
+  $('#status').textContent = `${shown.length} ${showingVerbs ? 'פעלים' : 'מילים'}`;
   $('#grid').innerHTML = shown.map(word => {
     const hasDetails = Boolean(word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm);
     const expanded = hasDetails && expandedWordId === word.id;
@@ -493,7 +501,7 @@ function render() {
       ${renderConjugations(word)}
     </div>` : ''}
   </article>`;
-  }).join('') || '<p class="empty">לא נמצאו מילים.</p>';
+  }).join('') || `<p class="empty">לא נמצאו ${showingVerbs ? 'פעלים' : 'מילים'}.</p>`;
 
   document.querySelectorAll('.word-row.has-details').forEach(row => {
     const toggle = () => {
@@ -517,10 +525,23 @@ function render() {
     };
   });
 
-  renderTopics();
-  renderPartsOfSpeech();
-  renderVerbGrammarFilters();
-  renderSortOptions();
+  if (showingVerbs) {
+    renderTopics(sourceWords, selectedVerbTopics, '#verbTopicChips');
+    renderVerbGrammarFilters(sourceWords);
+    renderSortOptions('#verbSortChips', 'verbs');
+    updateFilterCount(selectedVerbTopics.size + selectedVerbForms.size + selectedWeakClasses.size);
+  } else {
+    renderTopics(sourceWords, selectedWordTopics, '#wordTopicChips');
+    renderPartsOfSpeech(sourceWords);
+    renderSortOptions('#wordSortChips', 'words');
+    updateFilterCount(selectedWordTopics.size + selectedPartsOfSpeech.size);
+  }
+}
+
+function updateFilterCount(count) {
+  $('#filterCount').textContent = count;
+  $('#filterCount').hidden = count === 0;
+  $('#filterToggle').classList.toggle('has-filter', count > 0);
 }
 
 function renderPhrases() {
@@ -559,24 +580,27 @@ function renderPhrases() {
 }
 
 function setActiveView(view) {
-  if (view !== 'dictionary' && view !== 'phrases') return;
+  if (!['words', 'verbs', 'phrases'].includes(view)) return;
 
   searchQueries[activeView] = $('#search').value;
   activeView = view;
   const showingPhrases = activeView === 'phrases';
+  const showingVerbs = activeView === 'verbs';
+  const activePanelId = showingPhrases ? 'phraseFilterPanel' : showingVerbs ? 'verbFilterPanel' : 'wordFilterPanel';
 
   $('#search').value = searchQueries[activeView];
-  $('#search').placeholder = showingPhrases ? 'חיפוש משפטים…' : 'חיפוש…';
-  $('#search').setAttribute('aria-label', showingPhrases ? 'חיפוש משפטים' : 'חיפוש מילים');
-  $('#pageTitle').textContent = showingPhrases ? 'חושבים בערבית' : 'המילון שלי';
+  $('#search').placeholder = showingPhrases ? 'חיפוש משפטים…' : showingVerbs ? 'חיפוש פעלים…' : 'חיפוש מילים…';
+  $('#search').setAttribute('aria-label', showingPhrases ? 'חיפוש משפטים' : showingVerbs ? 'חיפוש פעלים' : 'חיפוש מילים');
+  $('#pageTitle').textContent = showingPhrases ? 'חושבים בערבית' : showingVerbs ? 'הפעלים שלי' : 'המילים שלי';
   $('#grid').hidden = showingPhrases;
   $('#phraseView').hidden = !showingPhrases;
   $('.control-panel').classList.toggle('phrase-controls', showingPhrases);
   $('#filterToggle').hidden = false;
-  $('#filterPanel').hidden = true;
+  $('#wordFilterPanel').hidden = true;
+  $('#verbFilterPanel').hidden = true;
   $('#phraseFilterPanel').hidden = true;
   $('#filterToggle').setAttribute('aria-expanded', 'false');
-  $('#filterToggle').setAttribute('aria-controls', showingPhrases ? 'phraseFilterPanel' : 'filterPanel');
+  $('#filterToggle').setAttribute('aria-controls', activePanelId);
 
   document.querySelectorAll('[data-view]').forEach(button => {
     const active = button.dataset.view === activeView;
@@ -593,7 +617,9 @@ document.querySelectorAll('[data-view]').forEach(button => {
 });
 
 $('#filterToggle').onclick = () => {
-  const panel = activeView === 'phrases' ? $('#phraseFilterPanel') : $('#filterPanel');
+  const panel = activeView === 'phrases'
+    ? $('#phraseFilterPanel')
+    : activeView === 'verbs' ? $('#verbFilterPanel') : $('#wordFilterPanel');
   const opening = panel.hidden;
   panel.hidden = !opening;
   $('#filterToggle').setAttribute('aria-expanded', String(opening));
@@ -609,9 +635,15 @@ $('#clearPhraseFamilies').onclick = () => {
 $('#shufflePhrases').onclick = shufflePhrases;
 $('#resetPhraseOrder').onclick = resetPhraseOrder;
 
-$('#clearFilters').onclick = () => {
-  selectedTopics.clear();
+$('#clearWordFilters').onclick = () => {
+  selectedWordTopics.clear();
   selectedPartsOfSpeech.clear();
+  saveUiState();
+  render();
+};
+
+$('#clearVerbFilters').onclick = () => {
+  selectedVerbTopics.clear();
   selectedVerbForms.clear();
   selectedWeakClasses.clear();
   saveUiState();
@@ -621,15 +653,15 @@ $('#clearFilters').onclick = () => {
 $('#search').oninput = render;
 
 Promise.all([
-  fetch('words.json?v=26').then(response => {
+  fetch('words.json?v=27').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),
-  fetch('phrases.json?v=3').then(response => {
+  fetch('phrases.json?v=4').then(response => {
     if (!response.ok) throw new Error('Could not load phrases');
     return response.json();
   }),
-  fetch('phrase-families.json?v=3').then(response => {
+  fetch('phrase-families.json?v=4').then(response => {
     if (!response.ok) throw new Error('Could not load phrase families');
     return response.json();
   })
@@ -637,14 +669,23 @@ Promise.all([
     words = loadedWords;
     phrases = loadedPhrases;
     indexPhraseFamilies(loadedPhraseFamilies.families);
-    const availableTopics = new Set(words.flatMap(topicsFor));
-    const availableParts = new Set(words.flatMap(partsOfSpeechFor));
+    const wordEntries = words.filter(word => !partsOfSpeechFor(word).includes('verb'));
+    const verbEntries = words.filter(word => partsOfSpeechFor(word).includes('verb'));
+    const availableWordTopics = new Set(wordEntries.flatMap(topicsFor));
+    const availableVerbTopics = new Set(verbEntries.flatMap(topicsFor));
+    const availableParts = new Set(wordEntries.flatMap(partsOfSpeechFor));
     const availableVerbForms = new Set(words.map(word => word.verbForm?.number).filter(Number.isInteger));
     const availableWeakClasses = new Set(words.map(word => word.weakClass?.id).filter(Boolean));
     let stateChanged = reconcilePhraseOrder();
-    selectedTopics.forEach(topic => {
-      if (!availableTopics.has(topic)) {
-        selectedTopics.delete(topic);
+    selectedWordTopics.forEach(topic => {
+      if (!availableWordTopics.has(topic)) {
+        selectedWordTopics.delete(topic);
+        stateChanged = true;
+      }
+    });
+    selectedVerbTopics.forEach(topic => {
+      if (!availableVerbTopics.has(topic)) {
+        selectedVerbTopics.delete(topic);
         stateChanged = true;
       }
     });

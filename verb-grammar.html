@@ -12,7 +12,12 @@
 <body>
   <header>
     <h1>בניינים וגזרות</h1>
-    <a class="grammar-back" href="index.html">חזרה למילון</a>
+    <nav class="app-navigation" aria-label="ניווט ראשי">
+      <a class="app-navigation-item" href="index.html#words">מילים</a>
+      <a class="app-navigation-item" href="index.html#verbs">פעלים</a>
+      <a class="app-navigation-item" href="index.html#phrases">משפטים</a>
+      <a class="app-navigation-item active" href="verb-grammar.html" aria-current="page">בניינים וגזרות</a>
+    </nav>
   </header>
   <main class="grammar-page">
     <section class="grammar-intro">
@@ -49,5 +54,6 @@
       </div>
     </section>
   </main>
+  <script src="grammar-state.js?v=1"></script>
 </body>
 </html>

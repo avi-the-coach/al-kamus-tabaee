@@ -67,6 +67,8 @@ Before adding a word:
 - Keep persisted UI state in the versioned `al-kamus-ui-state` object so more preferences can be added safely later.
 - Keep the three primary application views separate: `words` shows non-verbs, `verbs` shows entries classified as verbs, and `phrases` shows sentence practice. Search queries and relevant filter choices must persist independently for each view.
 - The words control panel contains word topics, non-verb parts of speech, and word sorting. The verbs control panel contains verb topics, building, weak-root class, and verb sorting. Do not expose verb-only controls in the words view.
+- Treat `words`, `verbs`, `phrases`, and the building/weak-root explanation page as stateful learning workspaces. Persist and restore each workspace's scroll position; also persist each main view's search query, filters, sorting, and the open accordion entry for words and verbs.
+- Navigating to the separate grammar page and back must preserve the originating view and restore its exact saved state. Grammar-page links back to the main application use `#words`, `#verbs`, or `#phrases` to select the requested workspace without resetting it.
 - Persist phrase order as the `phraseOrder` array of stable phrase IDs in that same UI-state object. When loading, keep surviving saved IDs in their stored order, ignore deleted IDs, and append previously unseen phrases sorted by ID.
 
 ## Thinking-in-Arabic practice

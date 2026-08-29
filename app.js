@@ -4,7 +4,7 @@ let phraseFamilies = [];
 const phraseFamiliesById = new Map();
 const phraseFamilyMatchesByPhrase = new Map();
 const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
-const UI_STATE_VERSION = 3;
+const UI_STATE_VERSION = 4;
 const selectedWordTopics = new Set();
 const selectedVerbTopics = new Set();
 const selectedPartsOfSpeech = new Set();
@@ -17,10 +17,12 @@ const SORT_OPTIONS = {
   arabic: { label: 'ערבית', locale: 'ar', field: 'arabic' }
 };
 const sortModes = { words: 'transcription', verbs: 'transcription' };
-let expandedWordId = null;
+const expandedWordIds = { words: null, verbs: null };
 let activeView = 'words';
 let savedPhraseOrder = [];
 const searchQueries = { words: '', verbs: '', phrases: '' };
+const scrollPositions = { words: 0, verbs: 0, phrases: 0, grammar: 0 };
+let scrollSaveTimer = null;
 const $ = selector => document.querySelector(selector);
 
 function topicsFor(word) {
@@ -51,7 +53,7 @@ function partsOfSpeechFor(word) {
 function loadUiState() {
   try {
     const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
-    if (!savedState || savedState.version !== UI_STATE_VERSION) return;
+    if (!savedState || ![3, UI_STATE_VERSION].includes(savedState.version)) return;
 
     if (Array.isArray(savedState.selectedWordTopics)) {
       savedState.selectedWordTopics
@@ -90,6 +92,23 @@ function loadUiState() {
     if (['words', 'verbs', 'phrases'].includes(savedState.activeView)) {
       activeView = savedState.activeView;
     }
+    if (savedState.searchQueries && typeof savedState.searchQueries === 'object') {
+      for (const view of ['words', 'verbs', 'phrases']) {
+        if (typeof savedState.searchQueries[view] === 'string') searchQueries[view] = savedState.searchQueries[view];
+      }
+    }
+    if (savedState.scrollPositions && typeof savedState.scrollPositions === 'object') {
+      for (const view of ['words', 'verbs', 'phrases', 'grammar']) {
+        const position = savedState.scrollPositions[view];
+        if (Number.isFinite(position) && position >= 0) scrollPositions[view] = position;
+      }
+    }
+    if (savedState.expandedWordIds && typeof savedState.expandedWordIds === 'object') {
+      for (const view of ['words', 'verbs']) {
+        const id = savedState.expandedWordIds[view];
+        if (typeof id === 'string' || id === null) expandedWordIds[view] = id;
+      }
+    }
   } catch {
     // Keep the app usable if storage is unavailable or contains invalid data.
   }
@@ -107,7 +126,10 @@ function saveUiState() {
       selectedPhraseFamilies: [...selectedPhraseFamilies],
       phraseOrder: savedPhraseOrder,
       sortModes,
-      activeView
+      activeView,
+      searchQueries,
+      scrollPositions,
+      expandedWordIds
     }));
   } catch {
     // Keep the app usable if storage is unavailable.
@@ -463,6 +485,7 @@ function render() {
 
 function renderDictionaryView(view) {
   const showingVerbs = view === 'verbs';
+  const expandedWordId = expandedWordIds[view];
   const sourceWords = words.filter(word => partsOfSpeechFor(word).includes('verb') === showingVerbs);
   const selectedTopics = showingVerbs ? selectedVerbTopics : selectedWordTopics;
   const q = $('#search').value.trim().toLowerCase();
@@ -473,8 +496,6 @@ function renderDictionaryView(view) {
     (!showingVerbs || selectedWeakClasses.size === 0 || selectedWeakClasses.has(word.weakClass?.id)) &&
     (!q || Object.values(word).join(' ').toLowerCase().includes(q))
   ), view);
-
-  if (!shown.some(word => word.id === expandedWordId && (word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm))) expandedWordId = null;
 
   $('#status').textContent = `${shown.length} ${showingVerbs ? 'פעלים' : 'מילים'}`;
   $('#grid').innerHTML = shown.map(word => {
@@ -506,7 +527,8 @@ function renderDictionaryView(view) {
   document.querySelectorAll('.word-row.has-details').forEach(row => {
     const toggle = () => {
       const id = row.closest('.card').dataset.wordId;
-      expandedWordId = expandedWordId === id ? null : id;
+      expandedWordIds[view] = expandedWordIds[view] === id ? null : id;
+      saveUiState();
       render();
     };
     row.onclick = toggle;
@@ -579,10 +601,14 @@ function renderPhrases() {
   renderPhraseFamilyControls();
 }
 
-function setActiveView(view) {
+function setActiveView(view, initializing = false) {
   if (!['words', 'verbs', 'phrases'].includes(view)) return;
 
-  searchQueries[activeView] = $('#search').value;
+  if (!initializing) {
+    window.clearTimeout(scrollSaveTimer);
+    searchQueries[activeView] = $('#search').value;
+    scrollPositions[activeView] = window.scrollY;
+  }
   activeView = view;
   const showingPhrases = activeView === 'phrases';
   const showingVerbs = activeView === 'verbs';
@@ -610,6 +636,7 @@ function setActiveView(view) {
 
   saveUiState();
   render();
+  window.requestAnimationFrame(() => window.scrollTo(0, scrollPositions[activeView] ?? 0));
 }
 
 document.querySelectorAll('[data-view]').forEach(button => {
@@ -650,7 +677,25 @@ $('#clearVerbFilters').onclick = () => {
   render();
 };
 
-$('#search').oninput = render;
+$('#search').oninput = () => {
+  searchQueries[activeView] = $('#search').value;
+  saveUiState();
+  render();
+};
+
+window.addEventListener('scroll', () => {
+  window.clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = window.setTimeout(() => {
+    scrollPositions[activeView] = window.scrollY;
+    saveUiState();
+  }, 120);
+}, { passive: true });
+
+window.addEventListener('pagehide', () => {
+  searchQueries[activeView] = $('#search').value;
+  scrollPositions[activeView] = window.scrollY;
+  saveUiState();
+});
 
 Promise.all([
   fetch('words.json?v=27').then(response => {
@@ -714,6 +759,13 @@ Promise.all([
       }
     });
     if (stateChanged) saveUiState();
-    setActiveView(activeView);
+    expandedWordIds.words = words.some(word => word.id === expandedWordIds.words) ? expandedWordIds.words : null;
+    expandedWordIds.verbs = words.some(word => word.id === expandedWordIds.verbs) ? expandedWordIds.verbs : null;
+    const requestedView = window.location.hash.slice(1);
+    if (['words', 'verbs', 'phrases'].includes(requestedView)) {
+      activeView = requestedView;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+    setActiveView(activeView, true);
   })
   .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את הנתונים.'; });

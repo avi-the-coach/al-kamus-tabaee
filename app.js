@@ -698,11 +698,11 @@ window.addEventListener('pagehide', () => {
 });
 
 Promise.all([
-  fetch('words.json?v=27').then(response => {
+  fetch('words.json?v=28').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),
-  fetch('phrases.json?v=4').then(response => {
+  fetch('phrases.json?v=5').then(response => {
     if (!response.ok) throw new Error('Could not load phrases');
     return response.json();
   }),

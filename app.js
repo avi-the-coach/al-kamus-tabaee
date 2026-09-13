@@ -698,7 +698,7 @@ window.addEventListener('pagehide', () => {
 });
 
 Promise.all([
-  fetch('words.json?v=28').then(response => {
+  fetch('words.json?v=29').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),

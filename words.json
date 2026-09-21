@@ -1247,9 +1247,18 @@
       "transcription": "בַּאס"
     },
     "participles": {
-      "masculine": { "arabic": "بايس", "transcription": "בַּאיֶס" },
-      "feminine": { "arabic": "بايسة", "transcription": "בַּאיְסֶה" },
-      "plural": { "arabic": "بايسين", "transcription": "בַּאיְסִין" }
+      "masculine": {
+        "arabic": "بايس",
+        "transcription": "בַּאיֶס"
+      },
+      "feminine": {
+        "arabic": "بايسة",
+        "transcription": "בַּאיְסֶה"
+      },
+      "plural": {
+        "arabic": "بايسين",
+        "transcription": "בַּאיְסִין"
+      }
     },
     "conjugations": {
       "past": {
@@ -1679,8 +1688,7 @@
     },
     "example": "בַּכְּתֹבּ רִסַאלֶה לַצַאחְבִּי — אני כותב הודעה לחבר שלי",
     "explanation": "הווה רגיל במדוברת כולל בּ־: בְּיִכְּתֹבּ. בתמונה מופיע יַכְּתֻבּ בלי בּ־. קיימות הגיות o/u ותנועות עזר שונות בין דוברים. כַּאתֶבּ הוא בינוני פעיל ויכול לציין מי שכבר כתב; הוא גם שם העצם סופר לפי ההקשר. מַכְּתוּבּ — כתוב (בינוני סביל)."
-  }
-,
+  },
   {
     "id": "w-069",
     "topics": [],
@@ -2798,5 +2806,214 @@
         "you_pl": "תְשַרַּפוּ"
       }
     }
+  },
+  {
+    "topics": [
+      "עבודה וקריירה"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "مدرّب",
+    "transcription": "מְדַרֶּבּ",
+    "meaning": "מאמן / מדריך",
+    "example": "אַנַא מְדַרֶּבּ מֻדַרַא — אני מאמן מנהלים",
+    "explanation": "נקבה: מְדַרְּבֶּה; רבים: מְדַרְּבִּין.",
+    "id": "w-111"
+  },
+  {
+    "topics": [
+      "עבודה וקריירה"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "مدير",
+    "transcription": "מְדִיר",
+    "meaning": "מנהל",
+    "example": "מְדִיר שַאטֶר — מנהל מוכשר",
+    "explanation": "רבים נפוץ: مُدَرا / مدراء — מֻדַרַא.",
+    "id": "w-112"
+  },
+  {
+    "topics": [
+      "עבודה וקריירה"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "تطوير",
+    "transcription": "תַטְוִיר",
+    "meaning": "פיתוח",
+    "example": "בַּחִבּ תַטְוִיר אִנַּאס — אני אוהב פיתוח אנשים",
+    "id": "w-113"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "noun",
+    "arabic": "ناس",
+    "transcription": "נַאס",
+    "meaning": "אנשים",
+    "example": "בַּחִבּ אַשְתַעֶ׳ל מַע אִנַּאס — אני אוהב לעבוד עם אנשים",
+    "id": "w-114"
+  },
+  {
+    "topics": [
+      "טכנולוגיה"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "برمجة",
+    "transcription": "בַּרְמַגֶ׳ה",
+    "meaning": "תכנות",
+    "example": "בַּחִבּ אִלְבַּרְמַגֶ׳ה — אני אוהב תכנות",
+    "id": "w-115"
+  },
+  {
+    "topics": [
+      "טכנולוגיה"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "ذكاء اصطناعي",
+    "transcription": "דַ׳כַּאא אִצְטִנַאעִי",
+    "meaning": "בינה מלאכותית",
+    "example": "מַע אִדַּ׳כַּאא אִלְאִצְטִנַאעִי אִשֻּעְ׳ל צַאר אַסְהַל — עם בינה מלאכותית העבודה נהייתה קלה יותר",
+    "id": "w-116"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "adjective",
+    "arabic": "سهل",
+    "transcription": "סַהֶל",
+    "meaning": "קל / פשוט",
+    "example": "הַאדַא סַהֶל — זה קל",
+    "explanation": "נקבה: סַהְלֶה. השוואה: أسهل — אַסְהַל — קל יותר.",
+    "id": "w-117"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "noun",
+    "arabic": "شغلة",
+    "transcription": "שֻעְ׳לֶה",
+    "meaning": "דבר / עניין / משימה",
+    "example": "בִּדִּי אַסְאַלַכּ שֻעְ׳לֶה — אני רוצה לשאול אותך משהו",
+    "explanation": "רבים: شغلات — שֻעְ׳לַאת.",
+    "id": "w-118"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "adverb",
+    "arabic": "لحالك",
+    "transcription": "לְחַאלַכּ",
+    "meaning": "לבד / בעצמך (לזכר)",
+    "example": "בְּתִקְדַר תִעְמַלְהַא לְחַאלַכּ — אתה יכול לעשות אותה בעצמך",
+    "explanation": "מילולית: לעצמך/לבדך. לְחַאלִי — לבד/בעצמי.",
+    "id": "w-119"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "preposition",
+    "arabic": "بدون",
+    "transcription": "בִּדוּן",
+    "meaning": "בלי / ללא",
+    "example": "בִּדוּן מַצַארִי — בלי כסף",
+    "id": "w-120"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "noun",
+    "arabic": "مصاري",
+    "transcription": "מַצַארִי",
+    "meaning": "כסף",
+    "example": "מַא מַעִי מַצַארִי — אין לי כסף",
+    "explanation": "מילה יומיומית נפוצה לכסף.",
+    "id": "w-121"
+  },
+  {
+    "topics": [
+      "זמן ותדירות"
+    ],
+    "partOfSpeech": "noun",
+    "arabic": "وقت فراغ",
+    "transcription": "וַקֶת פַרַאע׳",
+    "meaning": "זמן פנוי",
+    "example": "שוּ בְּתִחֶבּ תִעְמַל בְּוַקֶת פַרַאעַ׳כּ? — מה אתה אוהב לעשות בזמנך הפנוי?",
+    "id": "w-122"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "adverb",
+    "arabic": "خصوصًا",
+    "transcription": "חֻ׳צוּצַן",
+    "meaning": "במיוחד",
+    "example": "בַּחִבּ אִשֻּעְ׳ל, חֻ׳צוּצַן תַטְוִיר אִנַּאס — אני אוהב את העבודה, במיוחד פיתוח אנשים",
+    "id": "w-123"
+  },
+  {
+    "topics": [],
+    "partOfSpeech": "verb",
+    "arabic": "دفع",
+    "transcription": "דַפַע",
+    "meaning": "שילם / דחף",
+    "example": "מַרַּאת בִּדְפַעוּלַכּ — לפעמים משלמים לך",
+    "explanation": "בהקשר של כסף: שילם. עם כינוי מושא: דַפַעְלִי — שילם לי.",
+    "root": "ד־פ־ע",
+    "verbForm": {
+      "number": 1,
+      "pattern": "פַעַל"
+    },
+    "weakClass": {
+      "id": "sound",
+      "label": "שלמים"
+    },
+    "dictionaryForm": {
+      "arabic": "دفع",
+      "transcription": "דַפַע"
+    },
+    "participles": {
+      "masculine": {
+        "arabic": "دافع",
+        "transcription": "דַאפֶע"
+      },
+      "feminine": {
+        "arabic": "دافعة",
+        "transcription": "דַאפְעֶה"
+      },
+      "plural": {
+        "arabic": "دافعين",
+        "transcription": "דַאפְעִין"
+      }
+    },
+    "conjugations": {
+      "past": {
+        "i": "דַפַעְת",
+        "you_m": "דַפַעְת",
+        "you_f": "דַפַעְתִי",
+        "he": "דַפַע",
+        "she": "דַפְעַת",
+        "we": "דַפַעְנַא",
+        "you_pl": "דַפַעְתוּ",
+        "they": "דַפַעוּ"
+      },
+      "present": {
+        "i": "בַּדְפַע",
+        "you_m": "בְּתִדְפַע",
+        "you_f": "בְּתִדְפַעִי",
+        "he": "בִּידְפַע",
+        "she": "בְּתִדְפַע",
+        "we": "בְּנִדְפַע",
+        "you_pl": "בְּתִדְפַעוּ",
+        "they": "בִּידְפַעוּ"
+      },
+      "future": {
+        "i": "רַח אַדְפַע",
+        "you_m": "רַח תִדְפַע",
+        "you_f": "רַח תִדְפַעִי",
+        "he": "רַח יִדְפַע",
+        "she": "רַח תִדְפַע",
+        "we": "רַח נִדְפַע",
+        "you_pl": "רַח תִדְפַעוּ",
+        "they": "רַח יִדְפַעוּ"
+      },
+      "imperative": {
+        "you_m": "אִדְפַע",
+        "you_f": "אִדְפַעִי",
+        "you_pl": "אִדְפַעוּ"
+      }
+    },
+    "id": "w-124"
   }
 ]

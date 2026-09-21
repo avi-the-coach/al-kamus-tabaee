@@ -41,7 +41,8 @@ const PART_OF_SPEECH_LABELS = {
   affirmation_word: 'מילת אישור',
   possessive_word: 'מילת שייכות',
   relative_pronoun: 'כינוי זיקה',
-  quantifier: 'מילת כמות'
+  quantifier: 'מילת כמות',
+  interjection: 'מילת קריאה / ברכה'
 };
 const SUPPORTED_PARTS_OF_SPEECH = new Set(Object.keys(PART_OF_SPEECH_LABELS));
 
@@ -698,7 +699,7 @@ window.addEventListener('pagehide', () => {
 });
 
 Promise.all([
-  fetch('words.json?v=29').then(response => {
+  fetch('words.json?v=30').then(response => {
     if (!response.ok) throw new Error('Could not load words');
     return response.json();
   }),

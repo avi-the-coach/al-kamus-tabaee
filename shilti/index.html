@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f7f5"><title>Shilti — החבורה שלי בערבית</title>
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div><strong class="brand">Shilti</strong><span class="tagline">העולם שלך בערבית</span></div>
+    <button class="icon-btn" id="settingsButton" aria-label="הגדרות">⚙</button>
+  </header>
+  <main id="app" class="app"></main>
+  <nav class="bottom-nav" aria-label="ניווט">
+    <button data-view="feed" class="active"><span>⌂</span><small>פיד</small></button>
+    <button data-view="circle"><span>◉</span><small>החבורה</small></button>
+    <button data-view="messages"><span>✉</span><small>שיחות</small></button>
+    <button data-view="me"><span>●</span><small>אני</small></button>
+  </nav>
+  <dialog id="settingsDialog">
+    <form method="dialog" class="settings-card">
+      <div class="dialog-head"><h2>הגדרות AI</h2><button value="cancel">×</button></div>
+      <p>לפרוטוטייפ בלבד. המפתח נשמר בדפדפן הזה ולא נכלל בייצוא.</p>
+      <label>OpenAI API key<input id="apiKey" type="password" autocomplete="off" placeholder="sk-…"></label>
+      <label>מודל<input id="modelName" value="gpt-5.4-mini"></label>
+      <div class="dialog-actions"><button id="saveSettings" value="default">שמירה</button><button id="clearKey" type="button" class="ghost">מחיקת מפתח</button></div>
+    </form>
+  </dialog>
+  <script src="app.js?v=1"></script>
+</body></html>

@@ -1,4 +1,5 @@
 const KEY='shilti-state-v1', SETTINGS='shilti-settings-v1';
+const MENTION_ALL='jamaa';
 const seed={view:'feed',likes:[],characters:[
 {id:'khalil',name:'חליל',arabic:'خليل',initial:'خ',place:'חברון',bio:'טכנאי מכשירי חשמל. משפחה, עבודה וחיים בחברון.'},
 {id:'nadim',name:'נאדים',arabic:'نديم',initial:'ن',place:'מג׳דל שמס',bio:'מדריך טיולים דרוזי מהגולן. אוהב צילום ואוכל.'},
@@ -12,6 +13,8 @@ posts:[
 };
 function load(){try{return {...seed,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(seed)}}let state=load();
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function mentionOptions(){return [{id:MENTION_ALL,label:"Al Jama'a",all:true},...state.characters.map(p=>({id:p.id,label:p.name,all:false}))]}
+function requiredResponders({authorId=null,mentionedIds=[]}={}){const ids=new Set(authorId?[authorId]:[]);if(mentionedIds.includes(MENTION_ALL)) state.characters.forEach(p=>ids.add(p.id));else mentionedIds.forEach(id=>ids.add(id));return [...ids]}
 const app=document.querySelector('#app');
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';

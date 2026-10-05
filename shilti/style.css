@@ -7,3 +7,5 @@
 .copy-post{border:0;background:transparent;color:var(--muted);font-size:19px;line-height:1;padding:8px;margin:-6px -4px -6px 0;border-radius:50%;cursor:pointer}.copy-post:hover{background:var(--soft);color:#222}
 
 .top-actions{display:flex;align-items:center;gap:5px}.app-version{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.02em;user-select:none}
+
+.app-toast.show{cursor:pointer}.app-toast.show:hover{filter:brightness(1.08)}

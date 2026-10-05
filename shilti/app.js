@@ -13,7 +13,16 @@ posts:[
 function load(){try{return {...seed,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return structuredClone(seed)}}let state=load();
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-function responseText(data){return data.output_text||data.output?.flatMap(x=>x.content||[]).find(x=>x.type==='output_text')?.text||''}
+function responseText(data){
+  if(typeof data?.output_text==='string'&&data.output_text.trim())return data.output_text;
+  for(const item of (data?.output||[])){
+    for(const part of (item?.content||[])){
+      if(part?.type==='output_text'&&typeof part.text==='string')return part.text;
+      if(typeof part?.text?.value==='string')return part.text.value;
+    }
+  }
+  return '';
+}
 async function createAiPost(){
   const settings=getSettings(),key=settings.apiKey,model=settings.model||'gpt-6-luna';
   if(!key)throw new Error('צריך להכניס OpenAI API key בהגדרות.');
@@ -28,7 +37,14 @@ async function createAiPost(){
   let data={};try{data=await r.json()}catch{}
   if(!r.ok)throw new Error(data?.error?.message||('OpenAI '+r.status));
   const text=responseText(data).trim();
-  let post;try{post=JSON.parse(text)}catch{throw new Error('קיבלתי תשובה מה-AI, אבל לא הצלחתי לקרוא אותה. נסה שוב.')}
+  if(!text){
+    console.warn('Al Jamaa: response had no readable output_text',{status:data?.status,outputTypes:(data?.output||[]).map(x=>x?.type),incomplete:data?.incomplete_details});
+    throw new Error(data?.status==='incomplete'?'ה-AI עצר לפני שסיים את הפוסט. נסה שוב.':'קיבלתי תשובה מה-AI בלי תוכן קריא. נסה שוב.');
+  }
+  let post;try{post=JSON.parse(text)}catch{
+    console.warn('Al Jamaa: structured output parse failed',{text:text.slice(0,300)});
+    throw new Error('קיבלתי תשובה מה-AI, אבל לא הצלחתי לקרוא אותה. נסה שוב.');
+  }
   if(!person(post.who)||!post.ar||!post.tr||!post.he)throw new Error('קיבלתי פוסט לא שלם מה-AI. נסה שוב.');
   state.posts.unshift({id:'ai-'+Date.now(),who:post.who,time:'עכשיו',ar:String(post.ar),tr:String(post.tr),he:String(post.he),comments:0});
   save();render();showToast('פוסט חדש עלה מהחבורה','success');

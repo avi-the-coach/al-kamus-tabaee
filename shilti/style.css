@@ -5,3 +5,5 @@
 .app-toast{position:fixed;z-index:100;left:50%;bottom:88px;transform:translate(-50%,18px);max-width:min(90vw,520px);padding:11px 16px;border-radius:12px;background:#222;color:#fff;font-size:13px;box-shadow:0 8px 30px #0003;opacity:0;pointer-events:none;transition:.2s}.app-toast.show{opacity:1;transform:translate(-50%,0)}.app-toast.error{background:#7d2020}.app-toast.success{background:#235d39}
 
 .copy-post{border:0;background:transparent;color:var(--muted);font-size:19px;line-height:1;padding:8px;margin:-6px -4px -6px 0;border-radius:50%;cursor:pointer}.copy-post:hover{background:var(--soft);color:#222}
+
+.top-actions{display:flex;align-items:center;gap:5px}.app-version{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.02em;user-select:none}

@@ -100,9 +100,11 @@ async function copyTextRobust(text){
 }
 function showToast(message,type='info',context={}){
   let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}
-  const bundle={type:'al-jamaa-diagnostic',version:25,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
-  host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;
-  host.onclick=async()=>{const ok=await copyTextRobust(JSON.stringify(bundle,null,2));host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה בדפדפן';};
+  const bundle={type:'al-jamaa-diagnostic',version:26,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
+  const diagnosticText=JSON.stringify(bundle,null,2);
+  host.textContent=message+' · מעתיק פרטים…';host.title='לחץ כדי לנסות להעתיק שוב';host.className='app-toast show '+type;
+  host.onclick=async()=>{const ok=await copyTextRobust(diagnosticText);host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה · לחץ לנסות שוב';};
+  copyTextRobust(diagnosticText).then(ok=>{if(!host.classList.contains('show'))return;host.textContent=ok?message+' · הפרטים הועתקו':message+' · ההעתקה נחסמה · לחץ לנסות שוב';});
   clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',9000)
 }
 const person=id=>state.characters.find(x=>x.id===id);

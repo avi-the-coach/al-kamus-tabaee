@@ -41,7 +41,14 @@ async function aiJson(key,model,instructions,input,name,schema,maxOutput=2500){
   if(!r.ok)throw new Error(data?.error?.message||('OpenAI '+r.status));
   const text=responseText(data).trim();
   if(!text)throw new Error('AI החזיר תשובה ריקה · '+(data?.incomplete_details?.reason||data?.status||'empty'));
-  try{return JSON.parse(text)}catch(e){console.warn('Al Jamaa: JSON parse failed',{name,text:text.slice(0,1000),error:String(e)});const err=new Error('תשובת '+name+' חזרה בפורמט לא תקין.');err.diagnostic={stage:name,raw:text.slice(0,2000)};throw err}
+  try{return JSON.parse(text)}catch(e){
+    const cleaned=text.replace(/^\s*```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+    try{return JSON.parse(cleaned)}catch{}
+    console.warn('Al Jamaa: JSON parse failed',{name,text:text.slice(0,2000),status:data?.status,incomplete:data?.incomplete_details,error:String(e)});
+    const err=new Error('תשובת '+name+' חזרה בפורמט לא תקין.');
+    err.diagnostic={stage:name,raw:text.slice(0,4000),responseStatus:data?.status||null,incompleteDetails:data?.incomplete_details||null,outputTypes:(data?.output||[]).map(x=>x.type)};
+    throw err
+  }
 }
 async function renderTranscription(key,model,arabic,dialectProfile){
   const schema={type:'object',properties:{transliteration:{type:'string',description:'A phonetic transcription of the Arabic sounds using Hebrew letters with niqqud. It is NOT a Hebrew translation. No Latin letters.'}},required:['transliteration'],additionalProperties:false};
@@ -86,12 +93,23 @@ async function advanceWorld(){
 }
 
 const app=document.querySelector('#app');
-function showToast(message,type='info',context={}){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}const bundle={type:'al-jamaa-diagnostic',version:24,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;host.onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(bundle,null,2));host.textContent='פרטי ההודעה הועתקו'}catch{host.textContent='לא הצלחתי להעתיק'}};clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',6500)}
+async function copyTextRobust(text){
+  if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}
+  const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';ta.style.pointerEvents='none';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
+  let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok;
+}
+function showToast(message,type='info',context={}){
+  let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}
+  const bundle={type:'al-jamaa-diagnostic',version:25,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
+  host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;
+  host.onclick=async()=>{const ok=await copyTextRobust(JSON.stringify(bundle,null,2));host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה בדפדפן';};
+  clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',9000)
+}
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';
 function feed(){app.innerHTML='<section class="welcome"><h1>صباح الخير, אבי</h1><p>מה קורה אצל החבר׳ה שלך היום?</p></section><div class="stories">'+state.characters.map(p=>'<div class="story">'+avatar(p)+'<span>'+p.name+'</span></div>').join('')+'</div><div class="composer">'+avatar({initial:'א'})+'<input id="composer" placeholder="מה בא לך לספר היום?"></div><div class="feed-tools"><button class="feed-ai-action" id="newAiPost" type="button">✦ קדם את העולם</button></div>'+state.posts.map(postCard).join('');}
 function postExport(x){ensureWorld();const p=person(x.who),event=x.eventId?state.world.events.find(e=>e.id===x.eventId):null;return {type:'al-jamaa-post',version:2,post:{id:x.id,author:{id:p?.id,name:p?.name,arabic:p?.arabic,place:p?.place,bio:p?.bio,dialectProfile:p?.dialectProfile,ai:true},time:x.time,arabic:x.ar,transcription:x.tr,hebrew:x.he,liked:state.likes.includes(x.id),commentsCount:x.comments||0,replies:x.replies||[],eventId:x.eventId||null},worldContext:{tick:state.world.tick,event,characterState:p?.currentState||null,recentMemories:(p?.memories||[]).slice(-5)}}}
-async function copyPost(id){const x=state.posts.find(p=>p.id===id);if(!x)return;try{await navigator.clipboard.writeText(JSON.stringify(postExport(x),null,2));showToast('הפוסט הועתק','success')}catch{showToast('לא הצלחתי להעתיק את הפוסט','error')}}
+async function copyPost(id){const x=state.posts.find(p=>p.id===id);if(!x)return;try{if(!await copyTextRobust(JSON.stringify(postExport(x),null,2)))throw new Error('copy blocked');showToast('הפוסט הועתק','success')}catch{showToast('לא הצלחתי להעתיק את הפוסט','error')}}
 function postCard(x){const p=person(x.who),liked=state.likes.includes(x.id),settings=getSettings(),transcriptionFirst=settings.feedLanguage==='transcription';const primary=esc(transcriptionFirst?x.tr:x.ar),secondary=esc(transcriptionFirst?x.ar:x.tr),primaryClass=transcriptionFirst?'transcription':'arabic',secondaryClass=transcriptionFirst?'arabic-inline':'';return '<article class="post"><div class="post-head">'+avatar(p)+'<div class="meta"><strong>'+p.name+' <span class="ai-mark">✦ AI</span></strong><small>'+p.place+' · '+x.time+'</small></div><button class="copy-post" data-copy-post="'+esc(x.id)+'" type="button" aria-label="העתקת הפוסט" title="העתקת הפוסט">⧉</button></div><div class="'+primaryClass+'">'+primary+'</div><div class="help" id="help-'+x.id+'"><b class="'+secondaryClass+'">'+secondary+'</b><br>'+x.he+'</div><div class="actions"><button data-like="'+x.id+'">'+(liked?'♥':'♡')+' '+(liked?'אהבתי':'לייק')+'</button><button data-help="'+x.id+'">עזור לי להבין</button><button>◌ '+x.comments+' תגובות</button></div></article>'}
 function circle(){app.innerHTML='<div class="section-title"><div><h1>החבורה שלי</h1><span class="muted">5 אנשים שחיים איתך בערבית</span></div></div><div class="people-grid">'+state.characters.map(p=>'<article class="person">'+avatar(p)+'<h3>'+p.name+' · '+p.arabic+'</h3><small>'+p.place+' · ✦ AI</small><p>'+p.bio+'</p><button data-chat="'+p.id+'">דברו</button></article>').join('')+'</div>'}
 function messages(){app.innerHTML='<div class="section-title"><div><h1>שיחות</h1><span class="muted">החבורה מחכה לך</span></div></div>'+state.characters.map((p,i)=>'<div class="thread" data-chat="'+p.id+'">'+avatar(p)+'<div class="thread-main"><strong>'+p.name+' <span class="ai-mark">✦ AI</span></strong><span>'+(i===0?'وينك يا زلمة؟ من زمان ما حكينا 😄':'יש משהו חדש לספר לך…')+'</span></div>'+(i<2?'<span class="badge">1</span>':'')+'</div>').join('')}

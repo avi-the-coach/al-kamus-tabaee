@@ -11,6 +11,12 @@ This repository contains Avi's personal Palestinian Arabic dictionary, deployed 
 - Before designing or implementing fork/upstream synchronization, layered personal data, or related migrations, read and update `specs/forkable-personal-dictionary.md`.
 - Treat open design questions in that specification as unresolved; do not implement speculative answers without Avi's direction.
 
+## Al Jama'a UX rules
+
+- Never use browser-native `alert()`, `confirm()`, or `prompt()` in Al Jama'a. All errors, success messages, confirmations, loading states, and notices must be rendered as application UI (inline status, toast, sheet, or app-styled modal).
+- AI/API failures must preserve the current screen and explain the failure inside the app without disrupting the browser experience.
+- Keep AI-trigger controls visually subordinate to the social experience; do not crowd or distort the user's post composer.
+
 ## Publishing workflow
 
 - Do not leave an explicitly requested change only as a proposal. Implement it and verify that the public GitHub Pages site contains the requested result before reporting completion.

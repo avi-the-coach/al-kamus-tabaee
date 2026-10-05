@@ -29,7 +29,7 @@ async function createAiPost(){
   const crew=state.characters.map(({id,name,place,bio})=>({id,name,place,bio}));
   const schema={type:'object',properties:{who:{type:'string',enum:crew.map(x=>x.id)},ar:{type:'string'},tr:{type:'string'},he:{type:'string'}},required:['who','ar','tr','he'],additionalProperties:false};
   const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({
-    model,store:false,max_output_tokens:2000,reasoning:{effort:'low'},
+    model,store:false,max_output_tokens:8000,reasoning:{effort:'none'},
     instructions:'You create believable social posts for Al Jamaa, a fictional social circle for a Hebrew-speaking learner. Arabic MUST be natural everyday Palestinian Jerusalem spoken Arabic, not MSA. Do not teach or explain. The Hebrew transliteration must be fully vowel-marked and match the Arabic exactly.',
     input:JSON.stringify({crew,task:'Choose one crew member and create a fresh mundane but interesting post from their current life. Keep continuity with their profile.'}),
     text:{format:{type:'json_schema',name:'jamaa_post',strict:true,schema}}
@@ -39,7 +39,11 @@ async function createAiPost(){
   const text=responseText(data).trim();
   if(!text){
     console.warn('Al Jamaa: response had no readable output_text',{status:data?.status,outputTypes:(data?.output||[]).map(x=>x?.type),incomplete:data?.incomplete_details,usage:data?.usage});
-    throw new Error(data?.status==='incomplete'?'ה-AI עצר לפני שסיים את הפוסט ('+(data?.incomplete_details?.reason||'incomplete')+'). נסה שוב.':'קיבלתי תשובה מה-AI בלי תוכן קריא. נסה שוב.');
+    if(data?.status==='incomplete'){
+      const reason=data?.incomplete_details?.reason||'incomplete',used=data?.usage?.output_tokens;
+      throw new Error('ה-AI עצר לפני שסיים · '+reason+(used?' · '+used+' output tokens':''));
+    }
+    throw new Error('קיבלתי תשובה מה-AI בלי תוכן קריא.');
   }
   let post;try{post=JSON.parse(text)}catch{
     console.warn('Al Jamaa: structured output parse failed',{text:text.slice(0,300)});

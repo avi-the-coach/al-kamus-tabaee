@@ -41,30 +41,30 @@ async function advanceWorld(){
   const ids=crew.map(x=>x.id);
   const schema={type:'object',properties:{
     event:{type:'object',properties:{who:{type:'string',enum:ids},summary:{type:'string'},kind:{type:'string'},newState:{type:'string'},memory:{type:'string'}},required:['who','summary','kind','newState','memory'],additionalProperties:false},
-    publish:{type:'boolean'},
-    post:{type:['object','null'],properties:{who:{type:'string',enum:ids},ar:{type:'string'},tr:{type:'string'},he:{type:'string'}},required:['who','ar','tr','he'],additionalProperties:false}
-  },required:['event','publish','post'],additionalProperties:false};
+    post:{type:'object',properties:{who:{type:'string',enum:ids},ar:{type:'string'},tr:{type:'string'},he:{type:'string'}},required:['who','ar','tr','he'],additionalProperties:false}
+  },required:['event','post'],additionalProperties:false};
   const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({
     model,store:false,max_output_tokens:8000,reasoning:{effort:'none'},
-    instructions:'You are the world engine for Al Jamaa, a persistent fictional social circle. Advance the shared world by ONE small believable event. Respect character profiles, dialectProfile, current states, memories, recent shared events and post history. Prefer continuity over novelty. Not every life event deserves a social post: set publish accordingly. If publish is true, post must be by the event character. If publish is false, post must be null. Never act like a teacher. '+ARABIC_POLICY,
-    input:JSON.stringify({world:{tick:state.world.tick,recentEvents},crew,recentPosts:history,task:'Advance the world one step. Create one event and decide naturally whether it becomes a social post.'}),
+    instructions:'You are the world engine for Al Jamaa, a persistent fictional social circle. Advance the shared world by ONE small believable event. Respect character profiles, dialectProfile, current states, memories, recent shared events and post history. Prefer continuity over novelty. TEST MODE: every world advance MUST produce one visible social post. The post must be by the same character as the event. Always return a complete post. Never act like a teacher. '+ARABIC_POLICY,
+    input:JSON.stringify({world:{tick:state.world.tick,recentEvents},crew,recentPosts:history,task:'TEST MODE: Advance the world one step. Create one event AND one visible social post by that same character. A post is mandatory on every call.'}),
     text:{format:{type:'json_schema',name:'jamaa_world_tick',strict:true,schema}}
   })});
   let data={};try{data=await r.json()}catch{}
   if(!r.ok)throw new Error(data?.error?.message||('OpenAI '+r.status));
   const text=responseText(data).trim();
   if(!text){const reason=data?.incomplete_details?.reason||data?.status||'empty';throw new Error('העולם לא הצליח להתקדם · '+reason)}
-  let result;try{result=JSON.parse(text)}catch{throw new Error('קיבלתי עדכון עולם שלא הצלחתי לקרוא.')}
+  let result;try{result=JSON.parse(text)}catch(e){console.warn('Al Jamaa: world JSON parse failed',{text:text.slice(0,1000),error:String(e)});throw new Error('עדכון העולם חזר בפורמט לא תקין · פתח Console לפרטים.')}
   const character=person(result.event?.who);if(!character)throw new Error('עדכון העולם החזיר דמות לא מוכרת.');
   const event={id:'ev-'+Date.now(),tick:state.world.tick+1,at:new Date().toISOString(),who:result.event.who,kind:result.event.kind,summary:result.event.summary};
   state.world.tick=event.tick;state.world.updatedAt=event.at;state.world.events.push(event);state.world.events=state.world.events.slice(-50);
   character.currentState=result.event.newState||character.currentState;
   if(result.event.memory){character.memories.push({at:event.at,text:result.event.memory});character.memories=character.memories.slice(-20)}
-  if(result.publish&&result.post){
+  if(result.post){
+    if(result.post.who!==result.event.who)throw new Error('הפוסט ועדכון העולם חזרו עם דמויות שונות. נסה שוב.');
     if(!validHebrewTranscription(result.post.tr))throw new Error('התעתיק שחזר לא היה בעברית מנוקדת. עדכון העולם לא נשמר; נסה שוב.');
     state.posts.unshift({id:'ai-'+Date.now(),who:result.post.who,time:'עכשיו',ar:String(result.post.ar),tr:String(result.post.tr),he:String(result.post.he),comments:0,eventId:event.id});
     save();render();showToast('העולם התקדם · עלה פוסט חדש','success');
-  }else{save();render();showToast('העולם התקדם · הפעם אף אחד לא פרסם','info')}
+  }else{throw new Error('עדכון העולם חזר בלי פוסט במצב בדיקה.')}
 }
 const app=document.querySelector('#app');
 function showToast(message,type='info'){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}host.textContent=message;host.className='app-toast show '+type;clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',4200)}

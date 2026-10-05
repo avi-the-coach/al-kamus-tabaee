@@ -31,43 +31,61 @@ function ensureWorld(){
   state.world=state.world||{tick:0,events:[],updatedAt:null};
   state.characters=state.characters.map(c=>({...c,dialectProfile:dialectFor(c),currentState:c.currentState||'שגרה רגילה',memories:Array.isArray(c.memories)?c.memories:[]}));
 }
+async function aiJson(key,model,instructions,input,name,schema,maxOutput=2500){
+  const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({
+    model,store:false,max_output_tokens:maxOutput,reasoning:{effort:'none'},instructions,input,
+    text:{format:{type:'json_schema',name,strict:true,schema}}
+  })});
+  let data={};try{data=await r.json()}catch{}
+  if(!r.ok)throw new Error(data?.error?.message||('OpenAI '+r.status));
+  const text=responseText(data).trim();
+  if(!text)throw new Error('AI החזיר תשובה ריקה · '+(data?.incomplete_details?.reason||data?.status||'empty'));
+  try{return JSON.parse(text)}catch(e){console.warn('Al Jamaa: JSON parse failed',{name,text:text.slice(0,1000),error:String(e)});const err=new Error('תשובת '+name+' חזרה בפורמט לא תקין.');err.diagnostic={stage:name,raw:text.slice(0,2000)};throw err}
+}
+async function renderTranscription(key,model,arabic,dialectProfile){
+  const schema={type:'object',properties:{transliteration:{type:'string',description:'A phonetic transcription of the Arabic sounds using Hebrew letters with niqqud. It is NOT a Hebrew translation. No Latin letters.'}},required:['transliteration'],additionalProperties:false};
+  const x=await aiJson(key,model,'You are a specialist Arabic-to-Hebrew-script PHONETIC TRANSLITERATOR. Do NOT translate meaning. Preserve the sounds and word order of the Arabic. Output ONLY Hebrew letters with niqqud and punctuation. Latin/IPA is forbidden. Example: Arabic طلعت مشوار قصير -> Hebrew phonetic טַלַעְת מִשְוַאר קְצִיר. The output should sound like the source Arabic when read aloud. Dialect: '+dialectProfile,arabic,'jamaa_transliteration',schema,1800);
+  if(!validHebrewTranscription(x.transliteration)){const e=new Error('שכבת התעתיק לא החזירה תעתיק עברי תקין.');e.diagnostic={stage:'transliteration',arabic,received:x.transliteration};throw e}
+  return x.transliteration;
+}
+async function renderTranslation(key,model,arabic){
+  const schema={type:'object',properties:{translation:{type:'string',description:'Natural faithful Hebrew translation of the Arabic meaning. Translation only, not transliteration.'}},required:['translation'],additionalProperties:false};
+  const x=await aiJson(key,model,'Translate the supplied spoken Arabic into natural modern Hebrew. Translate meaning; do NOT transliterate sounds. Return only the Hebrew translation field.',arabic,'jamaa_hebrew_translation',schema,1800);
+  return x.translation;
+}
 async function advanceWorld(){
   ensureWorld();
   const settings=getSettings(),key=settings.apiKey,model=settings.model||'gpt-6-luna';
   if(!key)throw new Error('צריך להכניס OpenAI API key בהגדרות.');
   const crew=state.characters.map(({id,name,place,bio,dialectProfile,currentState,memories})=>({id,name,place,bio,dialectProfile,currentState,memories:memories.slice(-5)}));
-  const history=state.posts.slice(0,12).map(({who,ar,he,time})=>({who,ar,he,time}));
-  const recentEvents=state.world.events.slice(-12);
-  const ids=crew.map(x=>x.id);
+  const history=state.posts.slice(0,12).map(({who,ar,time})=>({who,ar,time}));
+  const recentEvents=state.world.events.slice(-12),ids=crew.map(x=>x.id);
   const schema={type:'object',properties:{
     event:{type:'object',properties:{who:{type:'string',enum:ids},summary:{type:'string'},kind:{type:'string'},newState:{type:'string'},memory:{type:'string'}},required:['who','summary','kind','newState','memory'],additionalProperties:false},
-    post:{type:'object',properties:{who:{type:'string',enum:ids},ar:{type:'string',description:'Natural spoken Arabic in this character dialect.'},tr:{type:'string',description:'Hebrew-script transliteration ONLY, with niqqud. Example: טַלַעְת מִשְוַאר קְצִיר. Never Latin/English letters or IPA.'},he:{type:'string',description:'Natural Hebrew translation.'}},required:['who','ar','tr','he'],additionalProperties:false}
+    post:{type:'object',properties:{who:{type:'string',enum:ids},arabic:{type:'string',description:'The social post in the character natural spoken Arabic dialect only.'}},required:['who','arabic'],additionalProperties:false}
   },required:['event','post'],additionalProperties:false};
-  const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({
-    model,store:false,max_output_tokens:8000,reasoning:{effort:'none'},
-    instructions:'You are the world engine for Al Jamaa, a persistent fictional social circle. Advance the shared world by ONE small believable event. Respect character profiles, dialectProfile, current states, memories, recent shared events and post history. Prefer continuity over novelty. TEST MODE: every world advance MUST produce one visible social post. The post must be by the same character as the event. Always return a complete post. Never act like a teacher. '+ARABIC_POLICY,
-    input:JSON.stringify({world:{tick:state.world.tick,recentEvents},crew,recentPosts:history,task:'TEST MODE: Advance the world one step. Create one event AND one visible social post by that same character. A post is mandatory on every call.'}),
-    text:{format:{type:'json_schema',name:'jamaa_world_tick',strict:true,schema}}
-  })});
-  let data={};try{data=await r.json()}catch{}
-  if(!r.ok)throw new Error(data?.error?.message||('OpenAI '+r.status));
-  const text=responseText(data).trim();
-  if(!text){const reason=data?.incomplete_details?.reason||data?.status||'empty';throw new Error('העולם לא הצליח להתקדם · '+reason)}
-  let result;try{result=JSON.parse(text)}catch(e){console.warn('Al Jamaa: world JSON parse failed',{text:text.slice(0,1000),error:String(e)});throw new Error('עדכון העולם חזר בפורמט לא תקין · פתח Console לפרטים.')}
+  const result=await aiJson(key,model,
+    'You are the world engine and Arabic social writer for Al Jamaa. Advance the persistent fictional social circle by ONE small believable event. Respect profiles, dialectProfile, current states, memories, recent events and post history. Prefer continuity over novelty. TEST MODE: every advance MUST create one visible social post by the same character as the event. Write the post ONLY in that character natural spoken Arabic dialect. Do not translate or transliterate it. Never act like a teacher.',
+    JSON.stringify({world:{tick:state.world.tick,recentEvents},crew,recentPosts:history,task:'Advance one step and write one Arabic social post by the event character.'}),
+    'jamaa_world_arabic_post',schema,6000);
   const character=person(result.event?.who);if(!character)throw new Error('עדכון העולם החזיר דמות לא מוכרת.');
+  if(!result.post?.arabic)throw new Error('עדכון העולם חזר בלי פוסט בערבית.');
+  if(result.post.who!==result.event.who)throw new Error('הפוסט ועדכון העולם חזרו עם דמויות שונות. נסה שוב.');
+  let tr,he;
+  try{[tr,he]=await Promise.all([
+    renderTranscription(key,model,result.post.arabic,dialectFor(character)),
+    renderTranslation(key,model,result.post.arabic)
+  ])}catch(e){e.diagnostic={...(e.diagnostic||{}),pipeline:'world -> Arabic -> [transliteration || translation]',worldEvent:result.event,arabicPost:result.post.arabic};throw e}
   const event={id:'ev-'+Date.now(),tick:state.world.tick+1,at:new Date().toISOString(),who:result.event.who,kind:result.event.kind,summary:result.event.summary};
   state.world.tick=event.tick;state.world.updatedAt=event.at;state.world.events.push(event);state.world.events=state.world.events.slice(-50);
   character.currentState=result.event.newState||character.currentState;
   if(result.event.memory){character.memories.push({at:event.at,text:result.event.memory});character.memories=character.memories.slice(-20)}
-  if(result.post){
-    if(result.post.who!==result.event.who)throw new Error('הפוסט ועדכון העולם חזרו עם דמויות שונות. נסה שוב.');
-    if(!validHebrewTranscription(result.post.tr)){console.warn('Al Jamaa: invalid transcription',{transcription:result.post.tr,arabic:result.post.ar,event:result.event});const e=new Error('התעתיק שחזר לא היה בעברית מנוקדת. עדכון העולם לא נשמר; נסה שוב.');e.diagnostic={reason:'invalid-hebrew-transcription',transcription:result.post.tr,arabic:result.post.ar,event:result.event};throw e;}
-    state.posts.unshift({id:'ai-'+Date.now(),who:result.post.who,time:'עכשיו',ar:String(result.post.ar),tr:String(result.post.tr),he:String(result.post.he),comments:0,eventId:event.id});
-    save();render();showToast('העולם התקדם · עלה פוסט חדש','success');
-  }else{throw new Error('עדכון העולם חזר בלי פוסט במצב בדיקה.')}
+  state.posts.unshift({id:'ai-'+Date.now(),who:result.post.who,time:'עכשיו',ar:String(result.post.arabic),tr:String(tr),he:String(he),comments:0,eventId:event.id});
+  save();render();showToast('העולם התקדם · פוסט + תעתיק + תרגום הושלמו','success',{pipeline:'world -> Arabic -> [transliteration || translation]',eventId:event.id});
 }
+
 const app=document.querySelector('#app');
-function showToast(message,type='info',context={}){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}const bundle={type:'al-jamaa-diagnostic',version:21,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;host.onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(bundle,null,2));host.textContent='פרטי ההודעה הועתקו'}catch{host.textContent='לא הצלחתי להעתיק'}};clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',6500)}
+function showToast(message,type='info',context={}){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}const bundle={type:'al-jamaa-diagnostic',version:23,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;host.onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(bundle,null,2));host.textContent='פרטי ההודעה הועתקו'}catch{host.textContent='לא הצלחתי להעתיק'}};clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',6500)}
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';
 function feed(){app.innerHTML='<section class="welcome"><h1>صباح الخير, אבי</h1><p>מה קורה אצל החבר׳ה שלך היום?</p></section><div class="stories">'+state.characters.map(p=>'<div class="story">'+avatar(p)+'<span>'+p.name+'</span></div>').join('')+'</div><div class="composer">'+avatar({initial:'א'})+'<input id="composer" placeholder="מה בא לך לספר היום?"></div><div class="feed-tools"><button class="feed-ai-action" id="newAiPost" type="button">✦ קדם את העולם</button></div>'+state.posts.map(postCard).join('');}

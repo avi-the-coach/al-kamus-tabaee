@@ -1,14 +1,15 @@
 const KEY='shilti-state-v1', SETTINGS='shilti-settings-v1';
 const ARABIC_POLICY=`Write dialogue and social content in the character's own natural spoken Arabic dialect. Never default to Modern Standard Arabic when a person would normally speak colloquially. Respect dialectProfile; if it is missing, use natural Palestinian Jerusalem/central Palestinian spoken Arabic. Keep regional flavor believable but readable and do not mix dialects randomly. Hebrew transliteration MUST use Hebrew letters with full niqqud, never Latin letters, IPA or academic transliteration, and must closely match the Arabic pronunciation. Example of the REQUIRED script/style: טַלַעְת מִשְוַאר קְצִיר. A form like Ṭilʿit mišwār is INVALID. Hebrew translation must be natural and faithful.`;
-function dialectFor(c){return c.dialectProfile||'Palestinian Arabic — Jerusalem / central Palestinian spoken dialect'}
+const DIALECT_PROFILES={"khalil":"Palestinian Arabic — Hebron urban dialect; natural Hebron-area vocabulary and pronunciation, readable to Palestinian speakers","nadim":"Syrian/Golan Druze Arabic — Majdal Shams local Druze speech; natural local flavor without caricature","fatma":"Negev Bedouin Arabic — Palestinian Bedouin speech of the Naqab/Negev; natural young local speaker, not Jerusalem urban Arabic","lina":"Palestinian Arabic — Jerusalem urban / central Palestinian spoken dialect","sami":"Palestinian Arabic — Acre / northern Galilee urban dialect; natural northern Palestinian local flavor"};
+function dialectFor(c){return DIALECT_PROFILES[c.id]||c.dialectProfile||'Palestinian Arabic — Jerusalem / central Palestinian spoken dialect'}
 function validHebrewTranscription(x){return typeof x==='string'&&/[א-ת]/.test(x)&&!/[A-Za-zÀ-ž]/.test(x)}
 
 const seed={view:'feed',likes:[],characters:[
-{id:'khalil',name:'חליל',arabic:'خليل',initial:'خ',place:'חברון',bio:'טכנאי מכשירי חשמל. משפחה, עבודה וחיים בחברון.'},
-{id:'nadim',name:'נאדים',arabic:'نديم',initial:'ن',place:'מג׳דל שמס',bio:'מדריך טיולים דרוזי מהגולן. אוהב צילום ואוכל.'},
-{id:'fatma',name:'פאטמה',arabic:'فاطمة',initial:'ف',place:'הנגב',bio:'סטודנטית בדואית. מצחיקה, ישירה וסקרנית.'},
-{id:'lina',name:'לינא',arabic:'لينا',initial:'ل',place:'ירושלים',bio:'עובדת בהייטק בירושלים ואוהבת מוזיקה ובתי קפה.'},
-{id:'sami',name:'סאמי',arabic:'سامي',initial:'س',place:'עכו',bio:'בשלן חובב מעכו. מכיר כל מקום טוב לאכול בו.'}],
+{id:'khalil',name:'חליל',arabic:'خليل',initial:'خ',place:'חברון',bio:'טכנאי מכשירי חשמל. משפחה, עבודה וחיים בחברון.',dialectProfile:'Palestinian Arabic — Hebron urban dialect; natural Hebron-area vocabulary and pronunciation, readable to Palestinian speakers'},
+{id:'nadim',name:'נאדים',arabic:'نديم',initial:'ن',place:'מג׳דל שמס',bio:'מדריך טיולים דרוזי מהגולן. אוהב צילום ואוכל.',dialectProfile:'Syrian/Golan Druze Arabic — Majdal Shams local Druze speech; natural local flavor without caricature'},
+{id:'fatma',name:'פאטמה',arabic:'فاطمة',initial:'ف',place:'הנגב',bio:'סטודנטית בדואית. מצחיקה, ישירה וסקרנית.',dialectProfile:'Negev Bedouin Arabic — Palestinian Bedouin speech of the Naqab/Negev; natural young local speaker, not Jerusalem urban Arabic'},
+{id:'lina',name:'לינא',arabic:'لينا',initial:'ل',place:'ירושלים',bio:'עובדת בהייטק בירושלים ואוהבת מוזיקה ובתי קפה.',dialectProfile:'Palestinian Arabic — Jerusalem urban / central Palestinian spoken dialect'},
+{id:'sami',name:'סאמי',arabic:'سامي',initial:'س',place:'עכו',bio:'בשלן חובב מעכו. מכיר כל מקום טוב לאכול בו.',dialectProfile:'Palestinian Arabic — Acre / northern Galilee urban dialect; natural northern Palestinian local flavor'}],
 posts:[
 {id:'p1',who:'khalil',time:'לפני 18 דק׳',ar:'اليوم صار معي إشي غريب بالشغل 😅',tr:'אִלְיוֹם צַאר מַעִי אִשִי עַ׳רִיבּ בִּשֻּעְ׳ל',he:'היום קרה לי משהו מוזר בעבודה.',comments:3},
 {id:'p2',who:'nadim',time:'לפני שעה',ar:'الجو اليوم بالجولان بجنّن. مين طالع يتمشّى؟',tr:'אִלְגַ׳וּ אִלְיוֹם בִּלְג׳וֹלַאן בְּגַ׳נֶּן. מִין טַאלֶע יִתְמַשַּא?',he:'מזג האוויר היום בגולן מדהים. מי יוצא להסתובב?',comments:5},
@@ -48,9 +49,9 @@ async function renderTranscription(key,model,arabic,dialectProfile){
   if(!validHebrewTranscription(x.transliteration)){const e=new Error('שכבת התעתיק לא החזירה תעתיק עברי תקין.');e.diagnostic={stage:'transliteration',arabic,received:x.transliteration};throw e}
   return x.transliteration;
 }
-async function renderTranslation(key,model,arabic){
+async function renderTranslation(key,model,arabic,character){
   const schema={type:'object',properties:{translation:{type:'string',description:'Natural faithful Hebrew translation of the Arabic meaning. Translation only, not transliteration.'}},required:['translation'],additionalProperties:false};
-  const x=await aiJson(key,model,'Translate the supplied spoken Arabic into natural modern Hebrew. Translate meaning; do NOT transliterate sounds. Return only the Hebrew translation field.',arabic,'jamaa_hebrew_translation',schema,1800);
+  const x=await aiJson(key,model,'Translate the supplied spoken Arabic into natural modern Hebrew. Translate meaning; do NOT transliterate sounds. Preserve the known speaker gender in Hebrew and never use slash forms such as סוגר/ת. Speaker metadata: '+JSON.stringify({name:character.name,gender:character.gender||((character.id==='fatma'||character.id==='lina')?'female':'male')})+'. Return only the Hebrew translation field.',arabic,'jamaa_hebrew_translation',schema,1800);
   return x.translation;
 }
 async function advanceWorld(){
@@ -74,7 +75,7 @@ async function advanceWorld(){
   let tr,he;
   try{[tr,he]=await Promise.all([
     renderTranscription(key,model,result.post.arabic,dialectFor(character)),
-    renderTranslation(key,model,result.post.arabic)
+    renderTranslation(key,model,result.post.arabic,character)
   ])}catch(e){e.diagnostic={...(e.diagnostic||{}),pipeline:'world -> Arabic -> [transliteration || translation]',worldEvent:result.event,arabicPost:result.post.arabic};throw e}
   const event={id:'ev-'+Date.now(),tick:state.world.tick+1,at:new Date().toISOString(),who:result.event.who,kind:result.event.kind,summary:result.event.summary};
   state.world.tick=event.tick;state.world.updatedAt=event.at;state.world.events.push(event);state.world.events=state.world.events.slice(-50);
@@ -85,7 +86,7 @@ async function advanceWorld(){
 }
 
 const app=document.querySelector('#app');
-function showToast(message,type='info',context={}){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}const bundle={type:'al-jamaa-diagnostic',version:23,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;host.onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(bundle,null,2));host.textContent='פרטי ההודעה הועתקו'}catch{host.textContent='לא הצלחתי להעתיק'}};clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',6500)}
+function showToast(message,type='info',context={}){let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}const bundle={type:'al-jamaa-diagnostic',version:24,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};host.textContent=message+' · לחץ להעתקה';host.title='לחץ להעתקת פרטי ההודעה';host.className='app-toast show '+type;host.onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(bundle,null,2));host.textContent='פרטי ההודעה הועתקו'}catch{host.textContent='לא הצלחתי להעתיק'}};clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',6500)}
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';
 function feed(){app.innerHTML='<section class="welcome"><h1>صباح الخير, אבי</h1><p>מה קורה אצל החבר׳ה שלך היום?</p></section><div class="stories">'+state.characters.map(p=>'<div class="story">'+avatar(p)+'<span>'+p.name+'</span></div>').join('')+'</div><div class="composer">'+avatar({initial:'א'})+'<input id="composer" placeholder="מה בא לך לספר היום?"></div><div class="feed-tools"><button class="feed-ai-action" id="newAiPost" type="button">✦ קדם את העולם</button></div>'+state.posts.map(postCard).join('');}

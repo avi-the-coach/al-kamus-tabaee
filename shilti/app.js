@@ -1,4 +1,8 @@
 const KEY='shilti-state-v1', SETTINGS='shilti-settings-v1';
+const ARABIC_POLICY=`Write dialogue and social content in the character's own natural spoken Arabic dialect. Never default to Modern Standard Arabic when a person would normally speak colloquially. Respect dialectProfile; if it is missing, use natural Palestinian Jerusalem/central Palestinian spoken Arabic. Keep regional flavor believable but readable and do not mix dialects randomly. Hebrew transliteration MUST use Hebrew letters with full niqqud, never Latin letters, IPA or academic transliteration, and must closely match the Arabic pronunciation. Hebrew translation must be natural and faithful.`;
+function dialectFor(c){return c.dialectProfile||'Palestinian Arabic — Jerusalem / central Palestinian spoken dialect'}
+function validHebrewTranscription(x){return typeof x==='string'&&/[א-ת]/.test(x)&&!/[A-Za-zÀ-ž]/.test(x)}
+
 const seed={view:'feed',likes:[],characters:[
 {id:'khalil',name:'חליל',arabic:'خليل',initial:'خ',place:'חברון',bio:'טכנאי מכשירי חשמל. משפחה, עבודה וחיים בחברון.'},
 {id:'nadim',name:'נאדים',arabic:'نديم',initial:'ن',place:'מג׳דל שמס',bio:'מדריך טיולים דרוזי מהגולן. אוהב צילום ואוכל.'},
@@ -25,13 +29,13 @@ function responseText(data){
 }
 function ensureWorld(){
   state.world=state.world||{tick:0,events:[],updatedAt:null};
-  state.characters=state.characters.map(c=>({...c,currentState:c.currentState||'שגרה רגילה',memories:Array.isArray(c.memories)?c.memories:[]}));
+  state.characters=state.characters.map(c=>({...c,dialectProfile:dialectFor(c),currentState:c.currentState||'שגרה רגילה',memories:Array.isArray(c.memories)?c.memories:[]}));
 }
 async function advanceWorld(){
   ensureWorld();
   const settings=getSettings(),key=settings.apiKey,model=settings.model||'gpt-6-luna';
   if(!key)throw new Error('צריך להכניס OpenAI API key בהגדרות.');
-  const crew=state.characters.map(({id,name,place,bio,currentState,memories})=>({id,name,place,bio,currentState,memories:memories.slice(-5)}));
+  const crew=state.characters.map(({id,name,place,bio,dialectProfile,currentState,memories})=>({id,name,place,bio,dialectProfile,currentState,memories:memories.slice(-5)}));
   const history=state.posts.slice(0,12).map(({who,ar,he,time})=>({who,ar,he,time}));
   const recentEvents=state.world.events.slice(-12);
   const ids=crew.map(x=>x.id);
@@ -42,7 +46,7 @@ async function advanceWorld(){
   },required:['event','publish','post'],additionalProperties:false};
   const r=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({
     model,store:false,max_output_tokens:8000,reasoning:{effort:'none'},
-    instructions:'You are the world engine for Al Jamaa, a persistent fictional social circle. Advance the shared world by ONE small believable event. Respect character profiles, current states, memories, recent shared events and post history. Prefer continuity over novelty. Not every life event deserves a social post: set publish accordingly. If publish is true, post must be by the event character and Arabic MUST be natural everyday Palestinian Jerusalem spoken Arabic, never MSA; tr must be fully vowel-marked Hebrew transliteration matching the Arabic; he is a clear Hebrew translation. If publish is false, post must be null. Never act like a teacher.',
+    instructions:'You are the world engine for Al Jamaa, a persistent fictional social circle. Advance the shared world by ONE small believable event. Respect character profiles, dialectProfile, current states, memories, recent shared events and post history. Prefer continuity over novelty. Not every life event deserves a social post: set publish accordingly. If publish is true, post must be by the event character. If publish is false, post must be null. Never act like a teacher. '+ARABIC_POLICY,
     input:JSON.stringify({world:{tick:state.world.tick,recentEvents},crew,recentPosts:history,task:'Advance the world one step. Create one event and decide naturally whether it becomes a social post.'}),
     text:{format:{type:'json_schema',name:'jamaa_world_tick',strict:true,schema}}
   })});
@@ -57,6 +61,7 @@ async function advanceWorld(){
   character.currentState=result.event.newState||character.currentState;
   if(result.event.memory){character.memories.push({at:event.at,text:result.event.memory});character.memories=character.memories.slice(-20)}
   if(result.publish&&result.post){
+    if(!validHebrewTranscription(result.post.tr))throw new Error('התעתיק שחזר לא היה בעברית מנוקדת. עדכון העולם לא נשמר; נסה שוב.');
     state.posts.unshift({id:'ai-'+Date.now(),who:result.post.who,time:'עכשיו',ar:String(result.post.ar),tr:String(result.post.tr),he:String(result.post.he),comments:0,eventId:event.id});
     save();render();showToast('העולם התקדם · עלה פוסט חדש','success');
   }else{save();render();showToast('העולם התקדם · הפעם אף אחד לא פרסם','info')}
@@ -66,7 +71,7 @@ function showToast(message,type='info'){let host=document.querySelector('#appToa
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';
 function feed(){app.innerHTML='<section class="welcome"><h1>صباح الخير, אבי</h1><p>מה קורה אצל החבר׳ה שלך היום?</p></section><div class="stories">'+state.characters.map(p=>'<div class="story">'+avatar(p)+'<span>'+p.name+'</span></div>').join('')+'</div><div class="composer">'+avatar({initial:'א'})+'<input id="composer" placeholder="מה בא לך לספר היום?"></div><div class="feed-tools"><button class="feed-ai-action" id="newAiPost" type="button">✦ קדם את העולם</button></div>'+state.posts.map(postCard).join('');}
-function postExport(x){const p=person(x.who);return {type:'al-jamaa-post',version:1,post:{id:x.id,author:{id:p?.id,name:p?.name,arabic:p?.arabic,place:p?.place,bio:p?.bio,ai:true},time:x.time,arabic:x.ar,transcription:x.tr,hebrew:x.he,liked:state.likes.includes(x.id),commentsCount:x.comments||0,replies:x.replies||[]}}}
+function postExport(x){ensureWorld();const p=person(x.who),event=x.eventId?state.world.events.find(e=>e.id===x.eventId):null;return {type:'al-jamaa-post',version:2,post:{id:x.id,author:{id:p?.id,name:p?.name,arabic:p?.arabic,place:p?.place,bio:p?.bio,dialectProfile:p?.dialectProfile,ai:true},time:x.time,arabic:x.ar,transcription:x.tr,hebrew:x.he,liked:state.likes.includes(x.id),commentsCount:x.comments||0,replies:x.replies||[],eventId:x.eventId||null},worldContext:{tick:state.world.tick,event,characterState:p?.currentState||null,recentMemories:(p?.memories||[]).slice(-5)}}}
 async function copyPost(id){const x=state.posts.find(p=>p.id===id);if(!x)return;try{await navigator.clipboard.writeText(JSON.stringify(postExport(x),null,2));showToast('הפוסט הועתק','success')}catch{showToast('לא הצלחתי להעתיק את הפוסט','error')}}
 function postCard(x){const p=person(x.who),liked=state.likes.includes(x.id),settings=getSettings(),transcriptionFirst=settings.feedLanguage==='transcription';const primary=esc(transcriptionFirst?x.tr:x.ar),secondary=esc(transcriptionFirst?x.ar:x.tr),primaryClass=transcriptionFirst?'transcription':'arabic',secondaryClass=transcriptionFirst?'arabic-inline':'';return '<article class="post"><div class="post-head">'+avatar(p)+'<div class="meta"><strong>'+p.name+' <span class="ai-mark">✦ AI</span></strong><small>'+p.place+' · '+x.time+'</small></div><button class="copy-post" data-copy-post="'+esc(x.id)+'" type="button" aria-label="העתקת הפוסט" title="העתקת הפוסט">⧉</button></div><div class="'+primaryClass+'">'+primary+'</div><div class="help" id="help-'+x.id+'"><b class="'+secondaryClass+'">'+secondary+'</b><br>'+x.he+'</div><div class="actions"><button data-like="'+x.id+'">'+(liked?'♥':'♡')+' '+(liked?'אהבתי':'לייק')+'</button><button data-help="'+x.id+'">עזור לי להבין</button><button>◌ '+x.comments+' תגובות</button></div></article>'}
 function circle(){app.innerHTML='<div class="section-title"><div><h1>החבורה שלי</h1><span class="muted">5 אנשים שחיים איתך בערבית</span></div></div><div class="people-grid">'+state.characters.map(p=>'<article class="person">'+avatar(p)+'<h3>'+p.name+' · '+p.arabic+'</h3><small>'+p.place+' · ✦ AI</small><p>'+p.bio+'</p><button data-chat="'+p.id+'">דברו</button></article>').join('')+'</div>'}

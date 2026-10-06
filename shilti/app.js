@@ -113,7 +113,7 @@ async function copyTextRobust(text){
 }
 function showToast(message,type='info',context={},options={}){
   let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}
-  const bundle={type:'al-jamaa-diagnostic',version:30,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
+  const bundle={type:'al-jamaa-diagnostic',version:31,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
   const diagnosticText=JSON.stringify(bundle,null,2);
   host.textContent=message+' · מעתיק פרטים…';host.title='לחץ כדי לנסות להעתיק שוב';host.className='app-toast show '+type;
   host.onclick=async()=>{const ok=await copyTextRobust(diagnosticText);host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה · לחץ לנסות שוב';};
@@ -129,7 +129,7 @@ function replyCard(post,r){
   const mine=r.who==='me',p=mine?{name:'אבי',initial:'א'}:person(r.who),liked=!!r.liked,settings=getSettings(),transcriptionFirst=settings.feedLanguage==='transcription';
   if(mine)return '<div class="reply-item mine">'+avatar(p)+'<div class="reply-body"><div class="reply-bubble"><strong>'+esc(p.name)+'</strong><div class="reply-ar">'+esc(r.text||r.ar)+'</div></div><button class="reply-like '+(liked?'liked':'')+'" data-reply-like="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(liked?'♥':'♡')+'</button></div></div>';
   const primary=esc(transcriptionFirst?r.tr:r.ar),secondary=esc(transcriptionFirst?r.ar:r.tr),primaryClass=transcriptionFirst?'transcription':'reply-ar',secondaryClass=transcriptionFirst?'arabic-inline':'transcription';
-  return '<div class="reply-item ai-reply">'+avatar(p)+'<div class="reply-body"><div class="reply-bubble"><strong>'+esc(p.name)+' <span class="ai-mark">✦ AI</span></strong><div class="'+primaryClass+'">'+primary+'</div><div class="reply-help '+(r.helpOpen?'open':'')+'"><b class="'+secondaryClass+'">'+secondary+'</b><br>'+esc(r.he)+'</div><button class="reply-help-toggle" data-reply-help="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(r.helpOpen?'הסתר עזרה':'עזור לי להבין')+'</button></div><button class="reply-like '+(liked?'liked':'')+'" data-reply-like="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(liked?'♥':'♡')+'</button></div></div>';
+  return '<div class="reply-item ai-reply nested-reply">'+avatar(p)+'<div class="reply-body"><div class="reply-bubble"><strong>'+esc(p.name)+' <span class="ai-mark">✦ AI</span></strong><div class="'+primaryClass+'">'+primary+'</div><div class="reply-help '+(r.helpOpen?'open':'')+'"><b class="'+secondaryClass+'">'+secondary+'</b><br>'+esc(r.he)+'</div><button class="reply-help-toggle" data-reply-help="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(r.helpOpen?'הסתר עזרה':'עזור לי להבין')+'</button></div><button class="reply-like '+(liked?'liked':'')+'" data-reply-like="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(liked?'♥':'♡')+'</button></div></div>';
 }
 function postCard(x){
   const p=person(x.who),liked=state.likes.includes(x.id),settings=getSettings(),transcriptionFirst=settings.feedLanguage==='transcription',replies=x.replies||[];

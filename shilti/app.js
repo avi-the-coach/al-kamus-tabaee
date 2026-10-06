@@ -111,20 +111,20 @@ async function copyTextRobust(text){
   const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';ta.style.pointerEvents='none';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
   let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok;
 }
-function showToast(message,type='info',context={}){
+function showToast(message,type='info',context={},options={}){
   let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}
-  const bundle={type:'al-jamaa-diagnostic',version:28,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
+  const bundle={type:'al-jamaa-diagnostic',version:29,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
   const diagnosticText=JSON.stringify(bundle,null,2);
   host.textContent=message+' · מעתיק פרטים…';host.title='לחץ כדי לנסות להעתיק שוב';host.className='app-toast show '+type;
   host.onclick=async()=>{const ok=await copyTextRobust(diagnosticText);host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה · לחץ לנסות שוב';};
-  copyTextRobust(diagnosticText).then(ok=>{if(!host.classList.contains('show'))return;host.textContent=ok?message+' · הפרטים הועתקו':message+' · ההעתקה נחסמה · לחץ לנסות שוב';});
+  if(options.autoCopy!==false)copyTextRobust(diagnosticText).then(ok=>{if(!host.classList.contains('show'))return;host.textContent=ok?message+' · הפרטים הועתקו':message+' · ההעתקה נחסמה · לחץ לנסות שוב';}); else {host.textContent=message;host.title='';host.onclick=null;}
   clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>host.className='app-toast',9000)
 }
 const person=id=>state.characters.find(x=>x.id===id);
 const avatar=p=>'<div class="avatar ai">'+p.initial+'</div>';
 function feed(){app.innerHTML='<section class="welcome"><h1>صباح الخير, אבי</h1><p>מה קורה אצל החבר׳ה שלך היום?</p></section><div class="stories">'+state.characters.map(p=>'<div class="story">'+avatar(p)+'<span>'+p.name+'</span></div>').join('')+'</div><div class="composer">'+avatar({initial:'א'})+'<input id="composer" placeholder="מה בא לך לספר היום?"></div><div class="feed-tools"><button class="feed-ai-action" id="newAiPost" type="button">✦ קדם את העולם</button></div>'+state.posts.map(postCard).join('');}
 function postExport(x){ensureWorld();const p=person(x.who),event=x.eventId?state.world.events.find(e=>e.id===x.eventId):null;return {type:'al-jamaa-post',version:2,post:{id:x.id,author:{id:p?.id,name:p?.name,arabic:p?.arabic,place:p?.place,bio:p?.bio,dialectProfile:p?.dialectProfile,ai:true},time:x.time,arabic:x.ar,transcription:x.tr,hebrew:x.he,liked:state.likes.includes(x.id),commentsCount:x.comments||0,replies:x.replies||[],eventId:x.eventId||null},worldContext:{tick:state.world.tick,event,characterState:p?.currentState||null,recentMemories:(p?.memories||[]).slice(-5)}}}
-async function copyPost(id){const x=state.posts.find(p=>p.id===id);if(!x)return;try{if(!await copyTextRobust(JSON.stringify(postExport(x),null,2)))throw new Error('copy blocked');showToast('הפוסט הועתק','success')}catch{showToast('לא הצלחתי להעתיק את הפוסט','error')}}
+async function copyPost(id){const x=state.posts.find(p=>p.id===id);if(!x)return;try{if(!await copyTextRobust(JSON.stringify(postExport(x),null,2)))throw new Error('copy blocked');showToast('הפוסט הועתק','success',{}, {autoCopy:false})}catch{showToast('לא הצלחתי להעתיק את הפוסט','error')}}
 function replyCard(post,r){
   const mine=r.who==='me',p=mine?{name:'אבי',initial:'א'}:person(r.who),liked=!!r.liked,settings=getSettings(),transcriptionFirst=settings.feedLanguage==='transcription';
   if(mine)return '<div class="reply-item mine">'+avatar(p)+'<div class="reply-body"><div class="reply-bubble"><strong>'+esc(p.name)+'</strong><div class="reply-ar">'+esc(r.text||r.ar)+'</div></div><button class="reply-like '+(liked?'liked':'')+'" data-reply-like="'+esc(post.id)+'" data-reply-id="'+esc(r.id)+'">'+(liked?'♥':'♡')+'</button></div></div>';

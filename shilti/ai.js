@@ -1,5 +1,0 @@
-window.JamaaAI=(()=>{const endpoint='https://api.openai.com/v1/responses';
-const clean=s=>String(s||'').replace(/^\`\`\`(?:json)?\s*|\s*\`\`\`$/g,'').trim();
-async function ask({key,model,instructions,input}){if(!key)throw new Error('NO_KEY');const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:model||'gpt-6-luna',instructions,input,store:false})});if(!r.ok){let d={};try{d=await r.json()}catch{}throw new Error(d?.error?.message||('OpenAI '+r.status))}const d=await r.json();const text=d.output_text||d.output?.flatMap(x=>x.content||[]).find(x=>x.type==='output_text')?.text||'';return text}
-async function json(args){const text=await ask(args);try{return JSON.parse(clean(text))}catch{throw new Error('ה-AI החזיר תשובה שלא ניתן לקרוא כ-JSON')}}
-return{ask,json}})();

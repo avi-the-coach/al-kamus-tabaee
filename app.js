@@ -1,0 +1,772 @@
+let words = [];
+let phrases = [];
+let phraseFamilies = [];
+const phraseFamiliesById = new Map();
+const phraseFamilyMatchesByPhrase = new Map();
+const UI_STATE_STORAGE_KEY = 'al-kamus-ui-state';
+const UI_STATE_VERSION = 4;
+const selectedWordTopics = new Set();
+const selectedVerbTopics = new Set();
+const selectedPartsOfSpeech = new Set();
+const selectedVerbForms = new Set();
+const selectedWeakClasses = new Set();
+const selectedPhraseFamilies = new Set();
+const SORT_OPTIONS = {
+  transcription: { label: 'תעתיק', locale: 'he', field: 'transcription' },
+  meaning: { label: 'עברית', locale: 'he', field: 'meaning' },
+  arabic: { label: 'ערבית', locale: 'ar', field: 'arabic' }
+};
+const sortModes = { words: 'transcription', verbs: 'transcription' };
+const expandedWordIds = { words: null, verbs: null };
+let activeView = 'words';
+let savedPhraseOrder = [];
+const searchQueries = { words: '', verbs: '', phrases: '' };
+const scrollPositions = { words: 0, verbs: 0, phrases: 0, grammar: 0 };
+let scrollSaveTimer = null;
+const $ = selector => document.querySelector(selector);
+
+function topicsFor(word) {
+  const topics = word.topics ?? word.topic ?? word.categories ?? word.category ?? [];
+  return (Array.isArray(topics) ? topics : [topics]).filter(Boolean);
+}
+
+const PART_OF_SPEECH_LABELS = {
+  verb: 'פועל',
+  adjective: 'שם תואר',
+  noun: 'שם עצם',
+  question_word: 'מילת שאלה',
+  preposition: 'מילת יחס',
+  conjunction: 'מילת קישור',
+  adverb: 'תואר הפועל',
+  affirmation_word: 'מילת אישור',
+  possessive_word: 'מילת שייכות',
+  relative_pronoun: 'כינוי זיקה',
+  quantifier: 'מילת כמות',
+  interjection: 'מילת קריאה / ברכה'
+};
+const SUPPORTED_PARTS_OF_SPEECH = new Set(Object.keys(PART_OF_SPEECH_LABELS));
+
+function partsOfSpeechFor(word) {
+  const parts = word.partsOfSpeech ?? word.partOfSpeech ?? [];
+  return (Array.isArray(parts) ? parts : [parts]).filter(part => SUPPORTED_PARTS_OF_SPEECH.has(part));
+}
+
+function loadUiState() {
+  try {
+    const savedState = JSON.parse(localStorage.getItem(UI_STATE_STORAGE_KEY));
+    if (!savedState || ![3, UI_STATE_VERSION].includes(savedState.version)) return;
+
+    if (Array.isArray(savedState.selectedWordTopics)) {
+      savedState.selectedWordTopics
+        .filter(topic => typeof topic === 'string')
+        .forEach(topic => selectedWordTopics.add(topic));
+    }
+    if (Array.isArray(savedState.selectedVerbTopics)) {
+      savedState.selectedVerbTopics
+        .filter(topic => typeof topic === 'string')
+        .forEach(topic => selectedVerbTopics.add(topic));
+    }
+    if (Array.isArray(savedState.selectedPartsOfSpeech)) {
+      savedState.selectedPartsOfSpeech
+        .filter(part => typeof part === 'string')
+        .forEach(part => selectedPartsOfSpeech.add(part));
+    }
+    if (Array.isArray(savedState.selectedVerbForms)) {
+      savedState.selectedVerbForms.filter(Number.isInteger).forEach(number => selectedVerbForms.add(number));
+    }
+    if (Array.isArray(savedState.selectedWeakClasses)) {
+      savedState.selectedWeakClasses.filter(id => typeof id === 'string').forEach(id => selectedWeakClasses.add(id));
+    }
+    if (Array.isArray(savedState.selectedPhraseFamilies)) {
+      savedState.selectedPhraseFamilies
+        .filter(familyId => typeof familyId === 'string')
+        .forEach(familyId => selectedPhraseFamilies.add(familyId));
+    }
+    if (Array.isArray(savedState.phraseOrder)) {
+      savedPhraseOrder = savedState.phraseOrder.filter(phraseId => typeof phraseId === 'string');
+    }
+    if (savedState.sortModes && typeof savedState.sortModes === 'object') {
+      for (const view of ['words', 'verbs']) {
+        if (SORT_OPTIONS[savedState.sortModes[view]]) sortModes[view] = savedState.sortModes[view];
+      }
+    }
+    if (['words', 'verbs', 'phrases'].includes(savedState.activeView)) {
+      activeView = savedState.activeView;
+    }
+    if (savedState.searchQueries && typeof savedState.searchQueries === 'object') {
+      for (const view of ['words', 'verbs', 'phrases']) {
+        if (typeof savedState.searchQueries[view] === 'string') searchQueries[view] = savedState.searchQueries[view];
+      }
+    }
+    if (savedState.scrollPositions && typeof savedState.scrollPositions === 'object') {
+      for (const view of ['words', 'verbs', 'phrases', 'grammar']) {
+        const position = savedState.scrollPositions[view];
+        if (Number.isFinite(position) && position >= 0) scrollPositions[view] = position;
+      }
+    }
+    if (savedState.expandedWordIds && typeof savedState.expandedWordIds === 'object') {
+      for (const view of ['words', 'verbs']) {
+        const id = savedState.expandedWordIds[view];
+        if (typeof id === 'string' || id === null) expandedWordIds[view] = id;
+      }
+    }
+  } catch {
+    // Keep the app usable if storage is unavailable or contains invalid data.
+  }
+}
+
+function saveUiState() {
+  try {
+    localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify({
+      version: UI_STATE_VERSION,
+      selectedWordTopics: [...selectedWordTopics],
+      selectedVerbTopics: [...selectedVerbTopics],
+      selectedPartsOfSpeech: [...selectedPartsOfSpeech],
+      selectedVerbForms: [...selectedVerbForms],
+      selectedWeakClasses: [...selectedWeakClasses],
+      selectedPhraseFamilies: [...selectedPhraseFamilies],
+      phraseOrder: savedPhraseOrder,
+      sortModes,
+      activeView,
+      searchQueries,
+      scrollPositions,
+      expandedWordIds
+    }));
+  } catch {
+    // Keep the app usable if storage is unavailable.
+  }
+}
+
+loadUiState();
+
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
+function renderTopics(sourceWords, selectedSet, containerSelector) {
+  const topics = [...new Set(sourceWords.flatMap(topicsFor))];
+  $(containerSelector).innerHTML = topics.map(topic => {
+    const active = selectedSet.has(topic);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-topic="${escapeHtml(topic)}" aria-pressed="${active}">${escapeHtml(topic)}</button>`;
+  }).join('');
+
+  document.querySelectorAll(`${containerSelector} .chip`).forEach(button => {
+    button.onclick = () => {
+      const topic = button.dataset.topic;
+      selectedSet.has(topic) ? selectedSet.delete(topic) : selectedSet.add(topic);
+      saveUiState();
+      render();
+    };
+  });
+}
+
+function renderVerbGrammarFilters(verbWords) {
+  const forms = [...new Map(verbWords.filter(word => word.verbForm).map(word => [word.verbForm.number, word.verbForm])).values()]
+    .sort((left, right) => left.number - right.number);
+  $('#verbFormChips').innerHTML = forms.map(form => {
+    const active = selectedVerbForms.has(form.number);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-verb-form="${form.number}" aria-pressed="${active}">בניין ${form.number} — ${escapeHtml(form.pattern)}</button>`;
+  }).join('');
+
+  const classes = [...new Map(verbWords.filter(word => word.weakClass).map(word => [word.weakClass.id, word.weakClass])).values()]
+    .sort((left, right) => left.label.localeCompare(right.label, 'he'));
+  $('#weakClassChips').innerHTML = classes.map(weakClass => {
+    const active = selectedWeakClasses.has(weakClass.id);
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-weak-class="${escapeHtml(weakClass.id)}" aria-pressed="${active}">${escapeHtml(weakClass.label)}</button>`;
+  }).join('');
+
+  document.querySelectorAll('[data-verb-form]').forEach(button => {
+    button.onclick = () => {
+      const number = Number(button.dataset.verbForm);
+      selectedVerbForms.has(number) ? selectedVerbForms.delete(number) : selectedVerbForms.add(number);
+      saveUiState();
+      render();
+    };
+  });
+  document.querySelectorAll('[data-weak-class]').forEach(button => {
+    button.onclick = () => {
+      const id = button.dataset.weakClass;
+      selectedWeakClasses.has(id) ? selectedWeakClasses.delete(id) : selectedWeakClasses.add(id);
+      saveUiState();
+      render();
+    };
+  });
+}
+
+function renderPartsOfSpeech(wordEntries) {
+  const availableParts = Object.keys(PART_OF_SPEECH_LABELS)
+    .filter(part => part !== 'verb' && wordEntries.some(word => partsOfSpeechFor(word).includes(part)));
+  $('#partChips').innerHTML = availableParts.map(part => {
+      const active = selectedPartsOfSpeech.has(part);
+      return `<button class="chip ${active ? 'active' : ''}" type="button" data-part-of-speech="${escapeHtml(part)}" aria-pressed="${active}">${escapeHtml(PART_OF_SPEECH_LABELS[part] ?? part)}</button>`;
+    }).join('');
+
+  document.querySelectorAll('#partChips [data-part-of-speech]').forEach(button => {
+    const part = button.dataset.partOfSpeech;
+    button.onclick = () => {
+      selectedPartsOfSpeech.has(part) ? selectedPartsOfSpeech.delete(part) : selectedPartsOfSpeech.add(part);
+      saveUiState();
+      render();
+    };
+  });
+}
+
+function renderSortOptions(containerSelector, view) {
+  $(containerSelector).innerHTML = Object.entries(SORT_OPTIONS).map(([mode, option]) => {
+    const active = sortModes[view] === mode;
+    return `<button class="chip ${active ? 'active' : ''}" type="button" data-sort-mode="${mode}" aria-pressed="${active}">${option.label}</button>`;
+  }).join('');
+
+  document.querySelectorAll(`${containerSelector} [data-sort-mode]`).forEach(button => {
+    button.onclick = () => {
+      sortModes[view] = button.dataset.sortMode;
+      saveUiState();
+      render();
+    };
+  });
+}
+
+function sortWords(items, view) {
+  const option = SORT_OPTIONS[sortModes[view]];
+  const collator = new Intl.Collator(option.locale, { sensitivity: 'base', numeric: true });
+  return [...items].sort((a, b) =>
+    collator.compare(a[option.field] ?? '', b[option.field] ?? '') ||
+    String(a.id).localeCompare(String(b.id))
+  );
+}
+
+function wordReference(word) {
+  return `[AL-KAMUS word_id=${word.id}] ${word.transcription} | ${word.meaning} | ${word.arabic}`;
+}
+
+const CONJUGATION_PERSONS = [
+  ['i', 'אני'], ['you_m', 'אתה'], ['you_f', 'את'], ['he', 'הוא'],
+  ['she', 'היא'], ['we', 'אנחנו'], ['you_pl', 'אתם'], ['they', 'הם']
+];
+const CONJUGATION_TENSES = [
+  ['past', 'עבר'], ['present', 'הווה'], ['future', 'עתיד'], ['imperative', 'ציווי']
+];
+
+function renderDictionaryForm(word) {
+  if (!word.dictionaryForm) return '';
+  const { transcription = '', arabic = '' } = word.dictionaryForm;
+  return `<section class="detail-section dictionary-form">
+    <div class="details-label">צורת מילון (הוא בעבר)</div>
+    <div><strong>${escapeHtml(transcription)}</strong>${arabic ? ` <span class="dictionary-form-arabic" lang="ar">${escapeHtml(arabic)}</span>` : ''}</div>
+  </section>`;
+}
+
+function renderVerbGrammar(word) {
+  if (!word.root || !word.verbForm || !word.weakClass) return '';
+  return `<section class="detail-section verb-grammar">
+    <div class="details-label">מבנה הפועל</div>
+    <dl class="verb-grammar-grid">
+      <div><dt>שורש</dt><dd>${escapeHtml(word.root)}</dd></div>
+      <div><dt>בניין</dt><dd>${word.verbForm.number} — ${escapeHtml(word.verbForm.pattern)}</dd></div>
+      <div><dt>גזרה</dt><dd>${escapeHtml(word.weakClass.label)}</dd></div>
+    </dl>
+  </section>`;
+}
+
+const PARTICIPLE_FORMS = [
+  ['masculine', 'זכר'], ['feminine', 'נקבה'], ['plural', 'רבים']
+];
+
+function renderParticiples(word) {
+  if (!word.participles) return '';
+  const forms = PARTICIPLE_FORMS.map(([key, label]) => {
+    const { transcription = '', arabic = '' } = word.participles[key] ?? {};
+    if (!transcription && !arabic) return '';
+    return `<div class="participle-form">
+      <span class="participle-label">${label}</span>
+      <strong>${escapeHtml(transcription)}</strong>
+      ${arabic ? `<span class="dictionary-form-arabic" lang="ar">${escapeHtml(arabic)}</span>` : ''}
+    </div>`;
+  }).join('');
+  if (!forms) return '';
+  return `<section class="detail-section participle-section">
+    <div class="details-label">צורות בינוני</div>
+    <div class="participle-forms">${forms}</div>
+  </section>`;
+}
+
+function renderPronounForms(word) {
+  if (!word.pronounForms) return '';
+  const rows = CONJUGATION_PERSONS.map(([person, label]) =>
+    `<tr><th scope="row">${label}</th><td>${escapeHtml(word.pronounForms[person] ?? '')}</td></tr>`
+  ).join('');
+  return `<section class="detail-section pronoun-forms-section">
+    <div class="details-label">הטיות לפי גוף</div>
+    <div class="conjugation-scroll"><table class="conjugation-table"><thead><tr><th scope="col">גוף</th><th scope="col">צורה</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+function renderConjugations(word) {
+  if (!word.conjugations) return '';
+  const header = CONJUGATION_TENSES.map(([, label]) => `<th scope="col">${label}</th>`).join('');
+  const rows = CONJUGATION_PERSONS.map(([person, label]) => {
+    const cells = CONJUGATION_TENSES.map(([tense]) =>
+      `<td>${escapeHtml(word.conjugations[tense]?.[person] ?? '')}</td>`
+    ).join('');
+    return `<tr><th scope="row">${label}</th>${cells}</tr>`;
+  }).join('');
+  return `<section class="detail-section conjugation-section">
+    <div class="details-label">הטיות</div>
+    <div class="conjugation-scroll"><table class="conjugation-table"><thead><tr><th scope="col">גוף</th>${header}</tr></thead><tbody>${rows}</tbody></table></div>
+  </section>`;
+}
+
+async function copyText(button, text, defaultLabel) {
+  let copied = false;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    copied = true;
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.readOnly = true;
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '1px';
+    textarea.style.height = '1px';
+    textarea.style.fontSize = '16px';
+    textarea.style.opacity = '0.01';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    copied = document.execCommand('copy');
+    textarea.remove();
+  }
+
+  const original = button.textContent;
+  button.textContent = copied ? '✓' : '!';
+  button.classList.toggle('copied', copied);
+  button.setAttribute('aria-label', copied ? 'הועתק' : 'ההעתקה נכשלה');
+  button.title = copied ? 'הועתק' : 'ההעתקה נכשלה';
+  window.setTimeout(() => {
+    button.textContent = original;
+    button.classList.remove('copied');
+    button.setAttribute('aria-label', defaultLabel);
+    button.title = defaultLabel;
+  }, 1200);
+}
+
+function copyWord(button, word) {
+  return copyText(button, wordReference(word), 'העתקת הפניה למילה');
+}
+
+function copyPhrase(button, phrase) {
+  const text = `[AL-KAMUS phrase_id=${phrase.id}] ${phrase.transcription} | ${phrase.literal} | ${phrase.meaning}`;
+  return copyText(button, text, 'העתקת המשפט והתרגומים');
+}
+
+function reconcilePhraseOrder() {
+  const phrasesById = new Map(phrases.map(phrase => [phrase.id, phrase]));
+  const orderedPhrases = [];
+
+  savedPhraseOrder.forEach(phraseId => {
+    const phrase = phrasesById.get(phraseId);
+    if (!phrase) return;
+    orderedPhrases.push(phrase);
+    phrasesById.delete(phraseId);
+  });
+
+  const newPhrases = [...phrasesById.values()].sort((left, right) =>
+    String(left.id).localeCompare(String(right.id), undefined, { numeric: true })
+  );
+  phrases = [...orderedPhrases, ...newPhrases];
+  const nextOrder = phrases.map(phrase => phrase.id);
+  const changed = nextOrder.length !== savedPhraseOrder.length ||
+    nextOrder.some((phraseId, index) => phraseId !== savedPhraseOrder[index]);
+  savedPhraseOrder = nextOrder;
+  return changed;
+}
+
+function shufflePhrases() {
+  for (let index = phrases.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [phrases[index], phrases[randomIndex]] = [phrases[randomIndex], phrases[index]];
+  }
+  savedPhraseOrder = phrases.map(phrase => phrase.id);
+  saveUiState();
+  renderPhrases();
+}
+
+function resetPhraseOrder() {
+  savedPhraseOrder = [];
+  reconcilePhraseOrder();
+  saveUiState();
+  renderPhrases();
+}
+
+function indexPhraseFamilies(families) {
+  phraseFamilies = families;
+  phraseFamiliesById.clear();
+  phraseFamilyMatchesByPhrase.clear();
+
+  families.forEach(family => {
+    phraseFamiliesById.set(family.id, family);
+    family.matches.forEach(match => {
+      const matches = phraseFamilyMatchesByPhrase.get(match.phraseId) ?? [];
+      matches.push({ family, words: match.words });
+      phraseFamilyMatchesByPhrase.set(match.phraseId, matches);
+    });
+  });
+}
+
+function renderPhraseTranscription(phrase) {
+  const familyMatches = phraseFamilyMatchesByPhrase.get(phrase.id) ?? [];
+  const linkedWords = [];
+
+  familyMatches.forEach(({ family, words: familyWords }) => {
+    familyWords.forEach(word => {
+      let start = phrase.transcription.indexOf(word);
+      while (start !== -1) {
+        linkedWords.push({ start, end: start + word.length, word, family });
+        start = phrase.transcription.indexOf(word, start + word.length);
+      }
+    });
+  });
+
+  linkedWords.sort((left, right) => left.start - right.start || right.end - left.end);
+  let position = 0;
+  let output = '';
+
+  linkedWords.forEach(match => {
+    if (match.start < position) return;
+    output += escapeHtml(phrase.transcription.slice(position, match.start));
+    const active = selectedPhraseFamilies.has(match.family.id);
+    const label = `${match.family.label} — ${match.family.meaning}`;
+    output += `<button class="phrase-family-link ${active ? 'active' : ''}" type="button" data-family-id="${escapeHtml(match.family.id)}" aria-pressed="${active}" title="${escapeHtml(label)}">${escapeHtml(match.word)}</button>`;
+    position = match.end;
+  });
+
+  return output + escapeHtml(phrase.transcription.slice(position));
+}
+
+function togglePhraseFamily(familyId) {
+  if (!phraseFamiliesById.has(familyId)) return;
+  selectedPhraseFamilies.has(familyId)
+    ? selectedPhraseFamilies.delete(familyId)
+    : selectedPhraseFamilies.add(familyId);
+  saveUiState();
+  renderPhrases();
+}
+
+function renderPhraseFamilyControls() {
+  $('#phraseFamilyChips').innerHTML = phraseFamilies.map(family => {
+    const active = selectedPhraseFamilies.has(family.id);
+    const suffix = active ? '<span class="phrase-family-remove" aria-hidden="true">×</span>' : '';
+    return `<button class="chip phrase-family-chip ${active ? 'active' : ''}" type="button" data-family-id="${escapeHtml(family.id)}" aria-pressed="${active}" title="${escapeHtml(family.meaning)}">${escapeHtml(family.label)}${suffix}</button>`;
+  }).join('');
+
+  document.querySelectorAll('#phraseFamilyChips [data-family-id]').forEach(button => {
+    button.onclick = () => togglePhraseFamily(button.dataset.familyId);
+  });
+
+  const count = selectedPhraseFamilies.size;
+  $('#filterCount').textContent = count;
+  $('#filterCount').hidden = count === 0;
+  $('#filterToggle').classList.toggle('has-filter', count > 0);
+  $('#clearPhraseFamilies').hidden = count === 0;
+}
+
+function render() {
+  if (activeView === 'phrases') {
+    renderPhrases();
+    return;
+  }
+  renderDictionaryView(activeView);
+}
+
+function renderDictionaryView(view) {
+  const showingVerbs = view === 'verbs';
+  const expandedWordId = expandedWordIds[view];
+  const sourceWords = words.filter(word => partsOfSpeechFor(word).includes('verb') === showingVerbs);
+  const selectedTopics = showingVerbs ? selectedVerbTopics : selectedWordTopics;
+  const q = $('#search').value.trim().toLowerCase();
+  const shown = sortWords(sourceWords.filter(word =>
+    (selectedTopics.size === 0 || topicsFor(word).some(topic => selectedTopics.has(topic))) &&
+    (showingVerbs || selectedPartsOfSpeech.size === 0 || partsOfSpeechFor(word).some(part => selectedPartsOfSpeech.has(part))) &&
+    (!showingVerbs || selectedVerbForms.size === 0 || selectedVerbForms.has(word.verbForm?.number)) &&
+    (!showingVerbs || selectedWeakClasses.size === 0 || selectedWeakClasses.has(word.weakClass?.id)) &&
+    (!q || Object.values(word).join(' ').toLowerCase().includes(q))
+  ), view);
+
+  $('#status').textContent = `${shown.length} ${showingVerbs ? 'פעלים' : 'מילים'}`;
+  $('#grid').innerHTML = shown.map(word => {
+    const hasDetails = Boolean(word.example || word.explanation || word.dictionaryForm || word.participles || word.pronounForms || word.conjugations || word.verbForm);
+    const expanded = hasDetails && expandedWordId === word.id;
+    const partLabels = partsOfSpeechFor(word).map(part => PART_OF_SPEECH_LABELS[part]);
+    const topicLabels = topicsFor(word);
+    return `<article class="card ${expanded ? 'expanded' : ''}" data-word-id="${escapeHtml(word.id)}">
+    <div class="word-row ${hasDetails ? 'has-details' : ''}" ${hasDetails ? `role="button" tabindex="0" aria-expanded="${expanded}"` : ''}>
+      <div class="trans">${escapeHtml(word.transcription)}</div>
+      <div class="meaning">${escapeHtml(word.meaning)}</div>
+      <div class="arabic" lang="ar">${escapeHtml(word.arabic)}</div>
+      <div class="word-signals">${hasDetails ? `<span class="details-indicator" title="פתיחת דוגמה" aria-hidden="true">⌄</span>` : ''}</div>
+    </div>
+    <div class="word-meta">${partLabels.map(label => `<span class="part-label">${escapeHtml(label)}</span>`).join('')}${topicLabels.map(label => `<span class="topic-label">${escapeHtml(label)}</span>`).join('')}</div>
+    <button class="copy-word" type="button" data-word-id="${escapeHtml(word.id)}" aria-label="העתקת הפניה למילה" title="העתקת הפניה">⧉</button>
+    ${expanded ? `<div class="word-details">
+      ${word.explanation ? `<section class="detail-section"><div class="details-label">הסבר</div><div class="example">${escapeHtml(word.explanation)}</div></section>` : ''}
+      ${word.example ? `<section class="detail-section"><div class="details-label">דוגמה</div><div class="example">${escapeHtml(word.example)}</div></section>` : ''}
+      ${renderVerbGrammar(word)}
+      ${renderDictionaryForm(word)}
+      ${renderParticiples(word)}
+      ${renderPronounForms(word)}
+      ${renderConjugations(word)}
+    </div>` : ''}
+  </article>`;
+  }).join('') || `<p class="empty">לא נמצאו ${showingVerbs ? 'פעלים' : 'מילים'}.</p>`;
+
+  document.querySelectorAll('.word-row.has-details').forEach(row => {
+    const toggle = () => {
+      const id = row.closest('.card').dataset.wordId;
+      expandedWordIds[view] = expandedWordIds[view] === id ? null : id;
+      saveUiState();
+      render();
+    };
+    row.onclick = toggle;
+    row.onkeydown = event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggle();
+      }
+    };
+  });
+
+  document.querySelectorAll('.card .copy-word').forEach(button => {
+    button.onclick = () => {
+      const word = words.find(item => item.id === button.dataset.wordId);
+      if (word) copyWord(button, word);
+    };
+  });
+
+  if (showingVerbs) {
+    renderTopics(sourceWords, selectedVerbTopics, '#verbTopicChips');
+    renderVerbGrammarFilters(sourceWords);
+    renderSortOptions('#verbSortChips', 'verbs');
+    updateFilterCount(selectedVerbTopics.size + selectedVerbForms.size + selectedWeakClasses.size);
+  } else {
+    renderTopics(sourceWords, selectedWordTopics, '#wordTopicChips');
+    renderPartsOfSpeech(sourceWords);
+    renderSortOptions('#wordSortChips', 'words');
+    updateFilterCount(selectedWordTopics.size + selectedPartsOfSpeech.size);
+  }
+}
+
+function updateFilterCount(count) {
+  $('#filterCount').textContent = count;
+  $('#filterCount').hidden = count === 0;
+  $('#filterToggle').classList.toggle('has-filter', count > 0);
+}
+
+function renderPhrases() {
+  const query = $('#search').value.trim().toLowerCase();
+  const shown = phrases.filter(phrase => {
+    const matches = phraseFamilyMatchesByPhrase.get(phrase.id) ?? [];
+    const matchingFamilies = new Set(matches.map(match => match.family.id));
+    const familyMatch = [...selectedPhraseFamilies].every(familyId => matchingFamilies.has(familyId));
+    const searchMatch = !query || [phrase.transcription, phrase.literal, phrase.meaning]
+      .some(value => value.toLowerCase().includes(query));
+    return familyMatch && searchMatch;
+  });
+
+  $('#status').textContent = `${shown.length} משפטים`;
+  $('#phraseRows').innerHTML = shown.map(phrase => `<tr>
+    <td class="phrase-transcription">${renderPhraseTranscription(phrase)}</td>
+    <td class="phrase-literal">${escapeHtml(phrase.literal)}</td>
+    <td class="phrase-meaning"><div class="phrase-meaning-content">
+      <span>${escapeHtml(phrase.meaning)}</span>
+      <button class="copy-word copy-phrase" type="button" data-phrase-id="${escapeHtml(phrase.id)}" aria-label="העתקת המשפט והתרגומים" title="העתקת המשפט והתרגומים">⧉</button>
+    </div></td>
+  </tr>`).join('') || '<tr><td class="phrase-empty" colspan="3">לא נמצאו משפטים.</td></tr>';
+
+  document.querySelectorAll('.copy-phrase').forEach(button => {
+    button.onclick = () => {
+      const phrase = phrases.find(item => item.id === button.dataset.phraseId);
+      if (phrase) copyPhrase(button, phrase);
+    };
+  });
+
+  document.querySelectorAll('.phrase-family-link').forEach(button => {
+    button.onclick = () => togglePhraseFamily(button.dataset.familyId);
+  });
+
+  renderPhraseFamilyControls();
+}
+
+function setActiveView(view, initializing = false) {
+  if (!['words', 'verbs', 'phrases'].includes(view)) return;
+
+  if (!initializing) {
+    window.clearTimeout(scrollSaveTimer);
+    searchQueries[activeView] = $('#search').value;
+    scrollPositions[activeView] = window.scrollY;
+  }
+  activeView = view;
+  const showingPhrases = activeView === 'phrases';
+  const showingVerbs = activeView === 'verbs';
+  const activePanelId = showingPhrases ? 'phraseFilterPanel' : showingVerbs ? 'verbFilterPanel' : 'wordFilterPanel';
+
+  $('#search').value = searchQueries[activeView];
+  $('#search').placeholder = showingPhrases ? 'חיפוש משפטים…' : showingVerbs ? 'חיפוש פעלים…' : 'חיפוש מילים…';
+  $('#search').setAttribute('aria-label', showingPhrases ? 'חיפוש משפטים' : showingVerbs ? 'חיפוש פעלים' : 'חיפוש מילים');
+  $('#pageTitle').textContent = showingPhrases ? 'חושבים בערבית' : showingVerbs ? 'הפעלים שלי' : 'המילים שלי';
+  $('#grid').hidden = showingPhrases;
+  $('#phraseView').hidden = !showingPhrases;
+  $('.control-panel').classList.toggle('phrase-controls', showingPhrases);
+  $('#filterToggle').hidden = false;
+  $('#wordFilterPanel').hidden = true;
+  $('#verbFilterPanel').hidden = true;
+  $('#phraseFilterPanel').hidden = true;
+  $('#filterToggle').setAttribute('aria-expanded', 'false');
+  $('#filterToggle').setAttribute('aria-controls', activePanelId);
+
+  document.querySelectorAll('[data-view]').forEach(button => {
+    const active = button.dataset.view === activeView;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+
+  saveUiState();
+  render();
+  window.requestAnimationFrame(() => window.scrollTo(0, scrollPositions[activeView] ?? 0));
+}
+
+document.querySelectorAll('[data-view]').forEach(button => {
+  button.onclick = () => setActiveView(button.dataset.view);
+});
+
+$('#filterToggle').onclick = () => {
+  const panel = activeView === 'phrases'
+    ? $('#phraseFilterPanel')
+    : activeView === 'verbs' ? $('#verbFilterPanel') : $('#wordFilterPanel');
+  const opening = panel.hidden;
+  panel.hidden = !opening;
+  $('#filterToggle').setAttribute('aria-expanded', String(opening));
+  $('#filterToggle').setAttribute('aria-label', opening ? 'סגירת סינון ומיון' : 'פתיחת סינון ומיון');
+};
+
+$('#clearPhraseFamilies').onclick = () => {
+  selectedPhraseFamilies.clear();
+  saveUiState();
+  renderPhrases();
+};
+
+$('#shufflePhrases').onclick = shufflePhrases;
+$('#resetPhraseOrder').onclick = resetPhraseOrder;
+
+$('#clearWordFilters').onclick = () => {
+  selectedWordTopics.clear();
+  selectedPartsOfSpeech.clear();
+  saveUiState();
+  render();
+};
+
+$('#clearVerbFilters').onclick = () => {
+  selectedVerbTopics.clear();
+  selectedVerbForms.clear();
+  selectedWeakClasses.clear();
+  saveUiState();
+  render();
+};
+
+$('#search').oninput = () => {
+  searchQueries[activeView] = $('#search').value;
+  saveUiState();
+  render();
+};
+
+window.addEventListener('scroll', () => {
+  window.clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = window.setTimeout(() => {
+    scrollPositions[activeView] = window.scrollY;
+    saveUiState();
+  }, 120);
+}, { passive: true });
+
+window.addEventListener('pagehide', () => {
+  searchQueries[activeView] = $('#search').value;
+  scrollPositions[activeView] = window.scrollY;
+  saveUiState();
+});
+
+Promise.all([
+  fetch('words.json?v=30').then(response => {
+    if (!response.ok) throw new Error('Could not load words');
+    return response.json();
+  }),
+  fetch('phrases.json?v=5').then(response => {
+    if (!response.ok) throw new Error('Could not load phrases');
+    return response.json();
+  }),
+  fetch('phrase-families.json?v=4').then(response => {
+    if (!response.ok) throw new Error('Could not load phrase families');
+    return response.json();
+  })
+]).then(([loadedWords, loadedPhrases, loadedPhraseFamilies]) => {
+    words = loadedWords;
+    phrases = loadedPhrases;
+    indexPhraseFamilies(loadedPhraseFamilies.families);
+    const wordEntries = words.filter(word => !partsOfSpeechFor(word).includes('verb'));
+    const verbEntries = words.filter(word => partsOfSpeechFor(word).includes('verb'));
+    const availableWordTopics = new Set(wordEntries.flatMap(topicsFor));
+    const availableVerbTopics = new Set(verbEntries.flatMap(topicsFor));
+    const availableParts = new Set(wordEntries.flatMap(partsOfSpeechFor));
+    const availableVerbForms = new Set(words.map(word => word.verbForm?.number).filter(Number.isInteger));
+    const availableWeakClasses = new Set(words.map(word => word.weakClass?.id).filter(Boolean));
+    let stateChanged = reconcilePhraseOrder();
+    selectedWordTopics.forEach(topic => {
+      if (!availableWordTopics.has(topic)) {
+        selectedWordTopics.delete(topic);
+        stateChanged = true;
+      }
+    });
+    selectedVerbTopics.forEach(topic => {
+      if (!availableVerbTopics.has(topic)) {
+        selectedVerbTopics.delete(topic);
+        stateChanged = true;
+      }
+    });
+    selectedPartsOfSpeech.forEach(part => {
+      if (!availableParts.has(part)) {
+        selectedPartsOfSpeech.delete(part);
+        stateChanged = true;
+      }
+    });
+    selectedVerbForms.forEach(number => {
+      if (!availableVerbForms.has(number)) {
+        selectedVerbForms.delete(number);
+        stateChanged = true;
+      }
+    });
+    selectedWeakClasses.forEach(id => {
+      if (!availableWeakClasses.has(id)) {
+        selectedWeakClasses.delete(id);
+        stateChanged = true;
+      }
+    });
+    selectedPhraseFamilies.forEach(familyId => {
+      if (!phraseFamiliesById.has(familyId)) {
+        selectedPhraseFamilies.delete(familyId);
+        stateChanged = true;
+      }
+    });
+    if (stateChanged) saveUiState();
+    expandedWordIds.words = words.some(word => word.id === expandedWordIds.words) ? expandedWordIds.words : null;
+    expandedWordIds.verbs = words.some(word => word.id === expandedWordIds.verbs) ? expandedWordIds.verbs : null;
+    const requestedView = window.location.hash.slice(1);
+    if (['words', 'verbs', 'phrases'].includes(requestedView)) {
+      activeView = requestedView;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+    setActiveView(activeView, true);
+  })
+  .catch(() => { $('#status').textContent = 'לא הצלחתי לטעון את הנתונים.'; });

@@ -1,0 +1,49 @@
+{
+  "project": "Al Jama'a",
+  "purpose": "Ideas and product decisions worth keeping but not necessarily implementing immediately.",
+  "updated": "2026-10-04",
+  "statuses": [
+    "idea",
+    "next",
+    "in-progress",
+    "done",
+    "dropped"
+  ],
+  "items": [
+    {
+      "id": "mentions-ui",
+      "title": "@ mention autocomplete",
+      "status": "idea",
+      "priority": "medium",
+      "notes": "Typing @ should offer every AI character plus Al Jama'a. Mentioning a character is an explicit request for that character to respond."
+    },
+    {
+      "id": "mention-all",
+      "title": "Mention the whole crew",
+      "status": "idea",
+      "priority": "medium",
+      "notes": "Mentioning Al Jama'a requires every character in the user's crew to respond."
+    },
+    {
+      "id": "social-response-orchestration",
+      "title": "Natural social response orchestration",
+      "status": "idea",
+      "priority": "high",
+      "notes": "The author of a post/comment being replied to should respond. Explicitly mentioned characters must respond. Other characters may optionally join based on probability so conversations do not feel like a chorus of bots."
+    },
+    {
+      "id": "relationship-aware-participation",
+      "title": "Relationship-aware participation",
+      "status": "idea",
+      "priority": "medium",
+      "notes": "Optional responders should later be selected using relationships between characters, topic relevance, conversation history and personality rather than uniform randomness."
+    },
+    {
+      "id": "adaptive-feed-script",
+      "title": "Adaptive Arabic/transcription mode",
+      "status": "idea",
+      "priority": "low",
+      "notes": "Future third feed-language mode that gradually shifts the learner from Hebrew transcription toward Arabic script based on demonstrated reading comfort."
+    }
+  ]
+}

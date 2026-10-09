@@ -102,9 +102,22 @@ async function advanceWorld(){
   character.currentState=result.event.newState||character.currentState;
   if(result.event.memory){character.memories.push({at:event.at,text:result.event.memory});character.memories=character.memories.slice(-20)}
   state.posts.unshift({id:'ai-'+Date.now(),who:result.post.who,time:'עכשיו',ar:String(result.post.arabic),tr:String(tr),he:String(he),comments:0,eventId:event.id});
+  appendWorldLog({status:'success',model,tick:event.tick,event,generated:result,post:{arabic:result.post.arabic,transcription:tr,hebrew:he}});
   save();render();showToast('העולם התקדם · פוסט + תעתיק + תרגום הושלמו','success',{pipeline:'world -> Arabic -> [transliteration || translation]',eventId:event.id});
 }
 
+const WORLD_LOG_KEY='shilti-world-advance-log-v1';
+function readWorldLog(){try{const x=JSON.parse(localStorage.getItem(WORLD_LOG_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return []}}
+function appendWorldLog(data){
+ try{const cutoff=Date.now()-7*86400000;const entries=readWorldLog().filter(x=>Date.parse(x.at)>=cutoff);
+ entries.push({at:new Date().toISOString(),...data});
+ localStorage.setItem(WORLD_LOG_KEY,JSON.stringify(entries))}catch(e){console.warn('World log storage unavailable',e)}
+}
+async function copyWorldLog(){
+ const log={type:'al-jamaa-world-log',retentionDays:7,exportedAt:new Date().toISOString(),entries:readWorldLog()};
+ try{if(!await copyTextRobust(JSON.stringify(log,null,2)))throw Error('copy blocked');showToast('לוג העולם הועתק','success',{}, {autoCopy:false})}
+ catch(e){showToast('העתקת הלוג נכשלה','error',{error:String(e)})}
+}
 const app=document.querySelector('#app');
 async function copyTextRobust(text){
   if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(text);return true}catch{}}
@@ -113,7 +126,7 @@ async function copyTextRobust(text){
 }
 function showToast(message,type='info',context={},options={}){
   let host=document.querySelector('#appToast');if(!host){host=document.createElement('div');host.id='appToast';host.className='app-toast';document.body.appendChild(host)}
-  const bundle={type:'al-jamaa-diagnostic',version:31,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
+  const bundle={type:'al-jamaa-diagnostic',version:32,messageType:type,message,at:new Date().toISOString(),world:{tick:state.world?.tick??null,lastEvent:state.world?.events?.slice(-1)[0]||null},context};
   const diagnosticText=JSON.stringify(bundle,null,2);
   host.textContent=message+' · מעתיק פרטים…';host.title='לחץ כדי לנסות להעתיק שוב';host.className='app-toast show '+type;
   host.onclick=async()=>{const ok=await copyTextRobust(diagnosticText);host.textContent=ok?'פרטי ההודעה הועתקו':'ההעתקה נחסמה · לחץ לנסות שוב';};
@@ -143,14 +156,14 @@ function chat(id){const p=person(id);app.innerHTML='<div class="section-title"><
 function render(){document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));({feed,circle,messages,me}[state.view]||feed)();bind()}
 function bind(){
   document.querySelectorAll('[data-copy-post]').forEach(b=>b.onclick=()=>copyPost(b.dataset.copyPost));
-  document.querySelector('#newAiPost')?.addEventListener('click',async e=>{const b=e.currentTarget,old=b.textContent;b.disabled=true;b.textContent='העולם מתקדם…';try{await advanceWorld()}catch(err){showToast(err.message,'error',err.diagnostic||{error:String(err)})}finally{b.disabled=false;b.textContent=old}});
+  document.querySelector('#newAiPost')?.addEventListener('click',async e=>{const b=e.currentTarget,old=b.textContent;b.disabled=true;b.textContent='העולם מתקדם…';try{await advanceWorld()}catch(err){appendWorldLog({status:'error',tick:state.world?.tick??null,error:err.message,diagnostic:err.diagnostic||null});showToast(err.message,'error',err.diagnostic||{error:String(err)})}finally{b.disabled=false;b.textContent=old}});
   document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>document.querySelector('#help-'+b.dataset.help).classList.toggle('open'));
   document.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const id=b.dataset.like;state.likes=state.likes.includes(id)?state.likes.filter(x=>x!==id):[...state.likes,id];save();render()});
   document.querySelectorAll('[data-comments]').forEach(b=>b.onclick=()=>{const x=state.posts.find(p=>p.id===b.dataset.comments);if(x){x.commentsOpen=!x.commentsOpen;save();render();if(x.commentsOpen)setTimeout(()=>document.querySelector('[data-comment-form="'+x.id+'"] input')?.focus(),0)}});
   document.querySelectorAll('[data-reply-help]').forEach(b=>b.onclick=()=>{const x=state.posts.find(p=>p.id===b.dataset.replyHelp),r=x?.replies?.find(r=>r.id===b.dataset.replyId);if(r){r.helpOpen=!r.helpOpen;save();render()}});
   document.querySelectorAll('[data-reply-like]').forEach(b=>b.onclick=()=>{const x=state.posts.find(p=>p.id===b.dataset.replyLike),r=x?.replies?.find(r=>r.id===b.dataset.replyId);if(r){r.liked=!r.liked;save();render()}});
   document.querySelectorAll('[data-comment-form]').forEach(f=>f.onsubmit=async e=>{e.preventDefault();const x=state.posts.find(p=>p.id===f.dataset.commentForm),input=f.elements.comment,text=input.value.trim();if(!x||!text||x.replyPending)return;x.replies=x.replies||[];x.commentsOpen=true;x.replies.push({id:'me-'+Date.now(),who:'me',text,liked:false,at:new Date().toISOString()});x.replyPending=true;save();render();try{await generatePostAuthorReply(x)}catch(err){x.replyPending=false;save();render();showToast(err.message,'error',err.diagnostic||{error:String(err),postId:x.id})}});
-  document.querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>chat(b.dataset.chat));document.querySelectorAll('[data-back]').forEach(b=>b.onclick=render);document.querySelector('#settingsMenu')?.addEventListener('click',openSettings);document.querySelector('#exportState')?.addEventListener('click',()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='al-jamaa-world.json';a.click()})
+  document.querySelectorAll('[data-chat]').forEach(b=>b.onclick=()=>chat(b.dataset.chat));document.querySelectorAll('[data-back]').forEach(b=>b.onclick=render);document.querySelector('#settingsMenu')?.addEventListener('click',openSettings);document.querySelector('#copyWorldLog')?.addEventListener('click',copyWorldLog);document.querySelector('#exportState')?.addEventListener('click',()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='al-jamaa-world.json';a.click()})
 }
 document.querySelectorAll('.bottom-nav button').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;save();render()});
 const dlg=document.querySelector('#settingsDialog'),apiKey=document.querySelector('#apiKey'),modelName=document.querySelector('#modelName'),feedLanguage=document.querySelector('#feedLanguage');

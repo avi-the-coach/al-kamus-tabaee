@@ -126,3 +126,14 @@ Before adding a word:
 6. Do not add a dictionary word merely because a phrase family was requested, and do not create a phrase family merely because a dictionary word was requested.
 7. Bump `phrase-families.json?v=` in `app.js`, then bump `app.js?v=` in `index.html`.
 8. Run `node scripts/validate-phrase-families.js` and `node scripts/validate-dictionary.js`, then publish and verify the changed files on `main`.
+
+
+## GitHub tool reliability and recovery
+
+- This repository is accessible through the connected GitHub tools. Do not interpret a single failed or blocked tool call as proof that GitHub access is unavailable.
+- When an authorized code change is requested, attempt the implementation rather than stopping at a proposal.
+- If a large or multi-step write is blocked, retry through a smaller, simpler supported operation (for example, update_file per file instead of composing a large create_tree/create_commit operation).
+- On conflicts or stale SHAs, fetch the latest file and branch state and retry safely. Avoid blind force pushes.
+- Exhaust reasonable alternate write paths before asking the user to retry or declaring the task impossible. Clearly distinguish temporary tool failure, operation-specific restrictions, and actual missing authorization.
+- Verify the resulting branch and required paths after every write. In particular, preserve both the root Al-Kamus site and shilti/index.html, shilti/app.js, and shilti/style.css. A partial Git tree must never delete unrelated app files.
+- Check the GitHub Pages deployment status when possible, and distinguish committed code from confirmed live deployment. Report precisely what was verified.
